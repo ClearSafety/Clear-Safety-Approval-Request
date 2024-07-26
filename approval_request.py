@@ -730,8 +730,8 @@ def main(page: ft.Page):
     
     page.add(header, form, file_picker)
 
-
-ft.app(target=main, assets_dir='assets', upload_dir='assets/uploads')
+port = int(os.environ.get("PORT", 5000))
+ft.app(target=main, assets_dir='assets', upload_dir='assets/uploads', view=ft.WEB_BROWSER, port=port)
 
 
 #SEARCH BAR https://www.youtube.com/watch?v=S0DfmuCHYGY
