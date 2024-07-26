@@ -150,7 +150,7 @@ def main(page: ft.Page):
 
 
     # FUNCTION TO CREATE A NORMAL TEXTFIELD
-    def create_field(field_label: str, columns_to_occupy: float=None, field_disable: bool=False, field_value: str=None, on_change_function: any=None, field_filter: str=None, field_multiline: bool=False, field_prefix: int=None,):
+    def create_field(field_label: str, columns_to_occupy: float=None, field_disable: bool=False, field_value: str=None, on_change_function: any=None, field_filter: str=None, field_multiline: bool=False, field_prefix: int=None, field_maxlines: int=1):
         return ft.TextField(
                     value=field_value,
                     border_color=ft.colors.GREY_300,
@@ -171,7 +171,7 @@ def main(page: ft.Page):
                     multiline=field_multiline,
                     prefix_text=field_prefix,
                     prefix_style=ft.TextStyle(color=ft.colors.BLACK, bgcolor=bgcolor_field, size=general_sizes.get('field_text')),
-                    height=50,
+                    max_lines=field_maxlines,
                 )
     #----------------------------------------------------------------------------
     
@@ -245,7 +245,7 @@ def main(page: ft.Page):
                 _sorcode := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_code'), dropbox_label='SOR Code', options_list=sor_code_list_codes_price, on_click_function=dropbox_option_selected),
                 _sordescription := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_description'), dropbox_label='Description', options_list=sor_code_list_descriptions_price, on_click_function=dropbox_option_selected),
                 _sorprice := create_field(field_label='Price', columns_to_occupy=0.9, field_disable=True, on_change_function=individual_total),
-                _sorqtd := create_field(field_label='Qtd', columns_to_occupy=0.9, field_disable=False, field_filter=ft.NumbersOnlyInputFilter(), on_change_function=individual_total),
+                _sorqtd := create_field(field_label='Qty', columns_to_occupy=0.9, field_disable=False, field_filter=ft.NumbersOnlyInputFilter(), on_change_function=individual_total),
                 _sortotal := create_field(field_label='Total', columns_to_occupy=0.9, field_disable=True, field_value='£0.00'),
                 _delete := ft.IconButton(on_click=delete_breakdown_price, data=breakdown_price_position, col=0.3, icon=ft.icons.DELETE_FOREVER_ROUNDED, icon_color=bgcolor_field, icon_size=25, tooltip='Delete', style=ft.ButtonStyle(elevation=1, shadow_color='black'), alignment=ft.alignment.center, padding=ft.padding.all(0)),
                 ft.Divider(),
@@ -333,7 +333,7 @@ def main(page: ft.Page):
             controls=[
                 _sorcode_uplift := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_code'), dropbox_label='SOR Code', options_list=sor_code_list_codes_uplift, on_click_function=dropbox_option_selected),
                 _sordescription_uplift := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_description'), dropbox_label='Description', options_list=sor_code_list_descriptions_uplift, on_click_function=dropbox_option_selected),
-                _sordetail_uplift := create_field(field_label='Provide details', columns_to_occupy=3, field_disable=False, field_multiline=True),
+                _sordetail_uplift := create_field(field_label='Provide details', columns_to_occupy=3, field_disable=False, field_multiline=True, field_maxlines=5),
                 _sorprice_uplift := create_field(field_prefix='£', field_label='Price', columns_to_occupy=0.9, field_disable=False, field_filter=ft.InputFilter(regex_string=r"^[0-9.]+$"), on_change_function=individual_total),
                 _soruplift := create_field(field_label='% Uplift', columns_to_occupy=0.9, field_disable=True, on_change_function=individual_total),
                 _sortotal := create_field(field_label='Total', columns_to_occupy=0.9, field_disable=True, field_value='£0.00'),
@@ -655,7 +655,7 @@ def main(page: ft.Page):
                         uprn := create_field('UPRN', 1),
                         postcode := create_field('Postcode', 1),
                         tenure := create_dropdown(1, 'Tenure', tenure_list),
-                        work_description := create_field('Description of Work', 3, field_multiline=True),
+                        work_description := create_field('Description of Work', 3, field_multiline=True, field_maxlines=5),
                         ft.Divider(color="#2A685A"),
                         
                         ft.Text(value='Price Breakdown', size=general_sizes.get('title'), color=ft.colors.GREY_300),

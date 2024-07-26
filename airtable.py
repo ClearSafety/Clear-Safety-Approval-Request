@@ -3,7 +3,6 @@ import os
 
 token = os.getenv('AIRTABLE_TOKEN')
 
-
 # FUNCTION USED TO GET A LIST OF RECORDS FROM A CERTAIN AIRTABLE'S TABLE
 def get_Records(baseID: str, tableID: str, fields: list=None) -> list:
     '''
