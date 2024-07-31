@@ -5,6 +5,7 @@ import json
 #token = os.getenv('AIRTABLE_TOKEN')
 with open('airtable-token.json', 'r') as file:
     token = json.load(file)
+    token = token.get('token')
 
 # FUNCTION USED TO GET A LIST OF RECORDS FROM A CERTAIN AIRTABLE'S TABLE
 def get_Records(baseID: str, tableID: str, fields: list=None) -> list:
@@ -184,4 +185,4 @@ def table_fields(baseID: str, tabaseID: str):
 
 
 if __name__ == '__main__':
-    ...
+    print(get_Records(baseID='appB0phO3KnX4WexS', tableID='tblycaJHzyRku5gYp'))
