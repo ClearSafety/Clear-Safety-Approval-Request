@@ -3,7 +3,7 @@ import os
 import json
 
 #token = os.getenv('AIRTABLE_TOKEN')
-with open('airtable-token', 'r') as file:
+with open('airtable-token.json', 'r') as file:
     token = json.load(file)
 
 # FUNCTION USED TO GET A LIST OF RECORDS FROM A CERTAIN AIRTABLE'S TABLE
