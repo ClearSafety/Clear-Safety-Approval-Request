@@ -13,7 +13,6 @@ os.getenv('FLET_SECRET_KEY')
 # TENURE LIST
 try:
     tenure_list = get_Records('appB0phO3KnX4WexS', 'tblycaJHzyRku5gYp')
-    tenure_list = list(map(lambda x: x.get('Tenure Types'), tenure_list))
 except:
     tenure_list = []
 #----------------------------------------------------------------------------
@@ -24,11 +23,11 @@ try:
     sor_code_list_price = list(filter(lambda item: item.get('Uplift') == 'No' and item.get('SOR Cost (BSW)') != 0, sor_code_list))
     sor_code_list_uplift = list(filter(lambda item: item.get('Uplift') == 'Yes' and item.get('Uplift BSW') != 0, sor_code_list))
 
-    sor_code_list_codes_price = sorted(list(map(lambda item: item.get('SOR Code'), sor_code_list_price)))
-    sor_code_list_descriptions_price = sorted(list(map(lambda item: item.get('SOR Description'), sor_code_list_price)))
+    sor_code_list_codes_price = sorted(sor_code_list_price, key=lambda item: item.get('SOR Code'))
+    sor_code_list_descriptions_price = sorted(sor_code_list_price, key=lambda item: item.get('SOR Description'))
 
-    sor_code_list_codes_uplift = sorted(list(map(lambda item: item.get('SOR Code'), sor_code_list_uplift)))
-    sor_code_list_descriptions_uplift = sorted(list(map(lambda item: item.get('SOR Description'), sor_code_list_uplift)))
+    sor_code_list_codes_uplift = sorted(sor_code_list_uplift, key=lambda item: item.get('SOR Code'))
+    sor_code_list_descriptions_uplift = sorted(sor_code_list_uplift, key=lambda item: item.get('SOR Description'))
 except:
     sor_code_list = []
     sor_code_list_price = []
@@ -176,10 +175,22 @@ def main(page: ft.Page):
     #----------------------------------------------------------------------------
     
     # FUNCTION TO CREATE A DROPDOWN TEXTFIELD
-    def create_dropdown(columns_to_occupy: int, dropbox_label: str, options_list: list, on_click_function: any=None):
+    def create_dropdown(columns_to_occupy: int, dropbox_label: str, options_list: list, option_column_text: str, option_column_hint: str, on_click_function: any=None):
         return ft.Dropdown(
                     label=dropbox_label,
-                    options=[ft.dropdown.Option(text=option) for option in options_list],
+                    options=[
+                        ft.dropdown.Option(
+                            text=option.get(option_column_text), 
+                            content=ft.Container(
+                                content=ft.Text(value=option.get(option_column_text), overflow=ft.TextOverflow.FADE),
+                                tooltip=option.get(option_column_hint),
+                                height=45,
+                                width=1000,
+                                alignment=ft.alignment.center_left,
+                                border=ft.border.only(bottom=ft.BorderSide(width=0.5, color=ft.colors.GREEN_ACCENT))
+                            )
+                        ) for option in options_list
+                    ],
                     border_color=ft.colors.GREY_300,
                     border_width=1,
                     label_style=ft.TextStyle(color=ft.colors.BLACK, bgcolor=bgcolor_field, size=general_sizes.get('field_text')),
@@ -242,8 +253,8 @@ def main(page: ft.Page):
             columns=3,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
             controls=[
-                _sorcode := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_code'), dropbox_label='SOR Code', options_list=sor_code_list_codes_price, on_click_function=dropbox_option_selected),
-                _sordescription := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_description'), dropbox_label='Description', options_list=sor_code_list_descriptions_price, on_click_function=dropbox_option_selected),
+                _sorcode := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_code'), dropbox_label='SOR Code', options_list=sor_code_list_codes_price, option_column_text='SOR Code', option_column_hint='SOR Description', on_click_function=dropbox_option_selected),
+                _sordescription := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_description'), dropbox_label='Description', options_list=sor_code_list_descriptions_price, option_column_text='SOR Description', option_column_hint='SOR Description', on_click_function=dropbox_option_selected),
                 _sorprice := create_field(field_label='Price', columns_to_occupy=0.9, field_disable=True, on_change_function=individual_total),
                 _sorqtd := create_field(field_label='Qty', columns_to_occupy=0.9, field_disable=False, field_filter=ft.NumbersOnlyInputFilter(), on_change_function=individual_total),
                 _sortotal := create_field(field_label='Total', columns_to_occupy=0.9, field_disable=True, field_value='£0.00'),
@@ -331,8 +342,8 @@ def main(page: ft.Page):
             columns=3,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
             controls=[
-                _sorcode_uplift := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_code'), dropbox_label='SOR Code', options_list=sor_code_list_codes_uplift, on_click_function=dropbox_option_selected),
-                _sordescription_uplift := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_description'), dropbox_label='Description', options_list=sor_code_list_descriptions_uplift, on_click_function=dropbox_option_selected),
+                _sorcode_uplift := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_code'), dropbox_label='SOR Code', options_list=sor_code_list_codes_uplift, option_column_text='SOR Code', option_column_hint='SOR Description', on_click_function=dropbox_option_selected),
+                _sordescription_uplift := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_description'), dropbox_label='Description', options_list=sor_code_list_descriptions_uplift, option_column_text='SOR Description', option_column_hint='SOR Description', on_click_function=dropbox_option_selected),
                 _sordetail_uplift := create_field(field_label='Provide details', columns_to_occupy=3, field_disable=False, field_multiline=True, field_maxlines=5),
                 _sorprice_uplift := create_field(field_prefix='£', field_label='Price', columns_to_occupy=0.9, field_disable=False, field_filter=ft.InputFilter(regex_string=r"^[0-9.]+$"), on_change_function=individual_total),
                 _soruplift := create_field(field_label='% Uplift', columns_to_occupy=0.9, field_disable=True, on_change_function=individual_total),
@@ -430,7 +441,6 @@ def main(page: ft.Page):
                             
                             if response_upload_to_google.status_code == 200:
                                 public_url = make_file_public_and_get_url(file_name=filename)
-                                print(public_url)
                                 
                                 if public_url != False:
                                     success_upload.append(
@@ -654,7 +664,7 @@ def main(page: ft.Page):
                         address := create_field('Address', 3),
                         uprn := create_field('UPRN', 1),
                         postcode := create_field('Postcode', 1),
-                        tenure := create_dropdown(1, 'Tenure', tenure_list),
+                        tenure := create_dropdown(1, 'Tenure', tenure_list, option_column_text='Tenure Types', option_column_hint='Tenure Types'),
                         work_description := create_field('Description of Work', 3, field_multiline=True, field_maxlines=5),
                         ft.Divider(color="#2A685A"),
                         
@@ -731,7 +741,7 @@ def main(page: ft.Page):
     page.add(header, form, file_picker)
 
 
-ft.app(target=main, assets_dir='assets', upload_dir='assets/uploads')
+ft.app(target=main, assets_dir='assets', upload_dir='assets/uploads', view=ft.AppView.WEB_BROWSER)
 
 
 #SEARCH BAR https://www.youtube.com/watch?v=S0DfmuCHYGY
