@@ -1,0 +1,15 @@
+{
+    "general": {
+        "page_bgcolor": "TEAL_800",
+        "field_bgcolor": "TEAL_400",
+        "field_border_color": "GREY_300"
+    },
+    "computer": {
+        "field_label_size": 15,
+        "field_text_size": 15
+    },
+    "mobile": {
+        "field_label_size": 13,
+        "field_text_size": 13
+    }
+}

@@ -182,12 +182,12 @@ def main(page: ft.Page):
                         ft.dropdown.Option(
                             text=option.get(option_column_text), 
                             content=ft.Container(
-                                content=ft.Text(value=option.get(option_column_text), overflow=ft.TextOverflow.FADE),
+                                content=ft.Text(value=option.get(option_column_text), overflow=ft.TextOverflow.ELLIPSIS),
                                 tooltip=option.get(option_column_hint),
                                 height=45,
                                 width=1000,
                                 alignment=ft.alignment.center_left,
-                                border=ft.border.only(bottom=ft.BorderSide(width=0.5, color=ft.colors.GREEN_ACCENT))
+                                #border=ft.border.only(bottom=ft.BorderSide(width=0.5, color=ft.colors.GREEN_ACCENT))
                             )
                         ) for option in options_list
                     ],
@@ -245,7 +245,6 @@ def main(page: ft.Page):
             overal_total()
             page.update()
         #----------------------------------------------------------------------------
-        
 
         # Object with the set of all elements and details 
         breakdown_price = ft.ResponsiveRow(
