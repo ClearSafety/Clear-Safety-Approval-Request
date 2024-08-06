@@ -2,14 +2,25 @@
     "general": {
         "page_bgcolor": "TEAL_800",
         "field_bgcolor": "TEAL_400",
-        "field_border_color": "GREY_300"
+        "field_border_color": "GREY_300",
+        "field_cursor_color": "GREY_300"
     },
     "computer": {
+        "text_header": 40,
+        "logo_header": {"heigh": 62, "width": 130},
+        "title": 17,
+        "subtitle": 15,
         "field_label_size": 15,
-        "field_text_size": 15
+        "field_text_size": 15,
+        "field_hint_size": 13
     },
     "mobile": {
+        "text_header": 25,
+        "logo_header": {"heigh": 56, "width": 118},
+        "title": 15,
+        "subtitle": 13,
         "field_label_size": 13,
-        "field_text_size": 13
+        "field_text_size": 13,
+        "field_hint_size": 11
     }
 }

@@ -3,19 +3,25 @@ from airtable import *
 from google_cloud import *
 from time import sleep
 import os
+import json
+from module_create_dropdown import create_Dropdown
+from module_create_textfield import create_Textfield
+from module_create_pricebreakdown import create_PriceBreakdownGroup
+from module_create_uplift import create_UpliftGroup
 
 os.getenv('FLET_SECRET_KEY')
 
-#############################################################################
-# DATA FROM AIRTABLE
-#############################################################################
 
+###############################################################################################################################################################################################
+# DATA FROM AIRTABLE
+###############################################################################################################################################################################################
 # TENURE LIST
 try:
     tenure_list = get_Records('appB0phO3KnX4WexS', 'tblycaJHzyRku5gYp')
 except:
     tenure_list = []
-#----------------------------------------------------------------------------
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
 
 # SOR CODE LIST
 try:
@@ -23,73 +29,86 @@ try:
     sor_code_list_price = list(filter(lambda item: item.get('Uplift') == 'No' and item.get('SOR Cost (BSW)') != 0, sor_code_list))
     sor_code_list_uplift = list(filter(lambda item: item.get('Uplift') == 'Yes' and item.get('Uplift BSW') != 0, sor_code_list))
 
-    sor_code_list_codes_price = sorted(sor_code_list_price, key=lambda item: item.get('SOR Code'))
-    sor_code_list_descriptions_price = sorted(sor_code_list_price, key=lambda item: item.get('SOR Description'))
+    # sor_code_list_codes_price = sorted(sor_code_list_price, key=lambda item: item.get('SOR Code'))
+    # sor_code_list_descriptions_price = sorted(sor_code_list_price, key=lambda item: item.get('SOR Description'))
 
-    sor_code_list_codes_uplift = sorted(sor_code_list_uplift, key=lambda item: item.get('SOR Code'))
-    sor_code_list_descriptions_uplift = sorted(sor_code_list_uplift, key=lambda item: item.get('SOR Description'))
+    # sor_code_list_codes_uplift = sorted(sor_code_list_uplift, key=lambda item: item.get('SOR Code'))
+    # sor_code_list_descriptions_uplift = sorted(sor_code_list_uplift, key=lambda item: item.get('SOR Description'))
 except:
     sor_code_list = []
     sor_code_list_price = []
     sor_code_list_uplift = []
-    sor_code_list_codes_price = []
-    sor_code_list_descriptions_price = []
-    sor_code_list_codes_uplift = []
-    sor_code_list_descriptions_uplift = []
-    
+    # sor_code_list_codes_price = []
+    # sor_code_list_descriptions_price = []
+    # sor_code_list_codes_uplift = []
+    # sor_code_list_descriptions_uplift = []    
 #----------------------------------------------------------------------------
+###############################################################################################################################################################################################
 
 
-#############################################################################
+
+
+###############################################################################################################################################################################################
 # GENERAL FUNCIONS
-#############################################################################
-
-# CHECK IF THE NUMBER PASSED INTO A TEXTFIELD HAS THE PATTERN '000000.00'
-def check_digit(e):
-    if e.control.value != '':
-        if e.control.value[0] in '.0':
-            e.control.value = ''
-        
-        elif e.control.value[-1] == '.' and '.' in e.control.value[:-1]:
-            e.control.value = e.control.value[:-1]
-        
-        elif len(e.control.value) >= 5:
-            if e.control.value[-4] == '.':
-                e.control.value = e.control.value[:-1]
-    
-    e.control.update()
-
-
+###############################################################################################################################################################################################
 def check_file(folder, filename):
     path = os.path.join(folder, filename)
     return os.path.isfile(path)
+###############################################################################################################################################################################################
 
 
 
 
-#############################################################################
+###############################################################################################################################################################################################
+# ACCESS FORMATTING BASE ON THE TYPE OF USER DEVICE: MOBILE OR COMPUTER
+###############################################################################################################################################################################################
+
+try:
+    with open('formatting.json', 'r') as file:
+        formatting_file = json.load(file)
+    
+    general_formatting = formatting_file.get('general')
+    
+except:
+    general_formatting=None
+    formatting_file=None
+
+###############################################################################################################################################################################################
+
+
+
+
+###############################################################################################################################################################################################
+###############################################################################################################################################################################################
 # APP FUNCTION
-#############################################################################
+###############################################################################################################################################################################################
 def main(page: ft.Page):
     page.window.always_on_top=True
-    page.bgcolor="#2A685A"  # Color grab from Clear Safety website
+    page.bgcolor=getattr(ft.colors, general_formatting.get('page_bgcolor'))  # Color grab from Clear Safety website
     page.adaptive=True
     page.title='Clear Safety: Approval Request'
     page.horizontal_alignment=ft.CrossAxisAlignment.CENTER
     page.vertical_alignment=ft.MainAxisAlignment.START
     page.padding=ft.padding.all(0)
     
-    # GLOBAL VARIABLES
-    # Background color used in all the fields
-    bgcolor_page="#2A685A"
-    bgcolor_field='#56BAA5'
 
+
+
+    ###########################################################################################################################################################################################
+    # GLOBAL VARIABLES
+    ###########################################################################################################################################################################################
     # List to store all the files uploaded into the form
     success_upload = []
     error_upload = []
     upload_directory = "assets/uploads"
-    #----------------------------------------------------------------------------
+    ###########################################################################################################################################################################################
     
+
+    
+    
+    ###########################################################################################################################################################################################
+    # INITIAL CHECKS
+    ###########################################################################################################################################################################################
     # CHECK IF DATA FROM AIRTABLE HAS SUCCESSFULY BEEN RETRIEVED (EX.: SOR CODE LIST, TENURE LIST)
     def close_dialog_error_connection(e):
         dialog_error_connection.open=False
@@ -107,176 +126,72 @@ def main(page: ft.Page):
         ]
         
     )
+    
     if len(tenure_list) == 0 and len(sor_code_list) == 0:
         page.overlay.append(dialog_error_connection)
         dialog_error_connection.open=True
         page.update()
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-
-    #############################################################################
-    # INTERNAL FUNCIONS
-    #############################################################################
-    
-    # FUNCTION TO CHECK IF THE APP IS OPENED BY MOBILE OR COMPUTER
-    def check_device():
+    # CHECK TYPE OF DEVICE USING BY THE USER AND DEFINE FORMATTING
+    if formatting_file != None:
         if 'mobile' in page.client_user_agent.lower() or 'table' in page.client_user_agent.lower():
-            return {
-                'text_header': 25,
-                'logo_header': {'height': 56, 'width': 118},
-                'field_text': 13,
-                'field_label': 13,
-                'field_hint': 11,
-                'title': 15,
-                'subtitle': 13,
-                'column_sor_code': 1.1,
-                'column_sor_description': 1.9
-            }
+            formatting = formatting_file.get('mobile')
         else:
-            return {
-                'text_header': 40,
-                'logo_header': {'height': 62, 'width': 130},
-                'field_text': 15,
-                'field_hint': 13,
-                'title': 17,
-                'subtitle': 15,
-                'column_sor_code': 0.9,
-                'column_sor_description': 2.1
-            }
+            formatting = formatting_file.get('computer')
+    else:
+        formatting = None
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ###########################################################################################################################################################################################
     
-    general_sizes = check_device()
-    #----------------------------------------------------------------------------
-
-
-    # FUNCTION TO CREATE A NORMAL TEXTFIELD
-    def create_field(field_label: str, columns_to_occupy: float=None, field_disable: bool=False, field_value: str=None, on_change_function: any=None, field_filter: str=None, field_multiline: bool=False, field_prefix: int=None, field_maxlines: int=1):
-        return ft.TextField(
-                    value=field_value,
-                    border_color=ft.colors.GREY_300,
-                    border_width=1,
-                    capitalization=ft.TextCapitalization.SENTENCES,
-                    label=field_label,
-                    label_style=ft.TextStyle(color=ft.colors.BLACK, bgcolor=bgcolor_field, size=general_sizes.get('field_text')),
-                    cursor_color=ft.colors.GREY_300,
-                    text_style=ft.TextStyle(color=ft.colors.BLACK, overflow=ft.TextOverflow.ELLIPSIS, size=general_sizes.get('field_text')),
-                    border_radius=ft.border_radius.all(10),
-                    col=columns_to_occupy,
-                    hint_text=f'Type the {field_label}',
-                    hint_style=ft.TextStyle(color=ft.colors.GREY_800, italic=True, size=general_sizes.get('field_hint')),
-                    bgcolor=bgcolor_field,
-                    disabled=field_disable,
-                    input_filter=field_filter,
-                    on_change=on_change_function,
-                    multiline=field_multiline,
-                    prefix_text=field_prefix,
-                    prefix_style=ft.TextStyle(color=ft.colors.BLACK, bgcolor=bgcolor_field, size=general_sizes.get('field_text')),
-                    max_lines=field_maxlines,
-                )
-    #----------------------------------------------------------------------------
     
-    # FUNCTION TO CREATE A DROPDOWN TEXTFIELD
-    def create_dropdown(columns_to_occupy: int, dropbox_label: str, options_list: list, option_column_text: str, option_column_hint: str, on_click_function: any=None):
-        return ft.Dropdown(
-                    label=dropbox_label,
-                    options=[
-                        ft.dropdown.Option(
-                            text=option.get(option_column_text), 
-                            content=ft.Container(
-                                content=ft.Text(value=option.get(option_column_text), overflow=ft.TextOverflow.ELLIPSIS),
-                                tooltip=option.get(option_column_hint),
-                                height=45,
-                                width=1000,
-                                alignment=ft.alignment.center_left,
-                                #border=ft.border.only(bottom=ft.BorderSide(width=0.5, color=ft.colors.GREEN_ACCENT))
-                            )
-                        ) for option in options_list
-                    ],
-                    border_color=ft.colors.GREY_300,
-                    border_width=1,
-                    label_style=ft.TextStyle(color=ft.colors.BLACK, bgcolor=bgcolor_field, size=general_sizes.get('field_text')),
-                    border_radius=ft.border_radius.all(10),
-                    text_style=ft.TextStyle(color=ft.colors.BLACK, overflow=ft.TextOverflow.FADE, size=general_sizes.get('field_text')),
-                    bgcolor=bgcolor_field,
-                    col=columns_to_occupy,
-                    on_change=on_click_function,
-                    alignment=ft.alignment.top_left,
-                    padding=ft.padding.only(top=0, bottom=0),
-                    height=50,
+
+
+    ###########################################################################################################################################################################################
+    # INTERNAL FUNCIONS
+    ###########################################################################################################################################################################################
+    # Function to add a new group of Price Breakdown or a new group of Uplip - Miscellaneous
+    def add_group(e):
+        if e.control.data == 'Price Breakdown':
+            next_position = len(all_prices_breakdown.controls)-1
+            all_prices_breakdown.controls.insert(
+                -1,
+                create_PriceBreakdownGroup(
+                    page=page,
+                    position=next_position,
+                    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                    field_option_source=sor_code_list_price,
+                    field_column_price='SOR Cost (BSW)',
+                    delete=delete_breakdown_price,
+                    overal_total=overal_total
                 )
-    #----------------------------------------------------------------------------
-
-
-    #----------------------- PRICE BREAKDOWN START -----------------------------
-    # FUNCTION TO CREATE A SET OF SOR CODE DETAILS FOR THE PRICE BREAKDOWN
-    def create_breakdown_price(breakdown_price_position: int):
-        
-        # Function to fill SOR Code / Description / Price and to creat a ToolTip
-        def dropbox_option_selected(e):
-
-            if e.control.label == 'Description':
-                _sorcode.value = list(filter(lambda item: item.get('SOR Description') == e.control.value, sor_code_list_price))[0].get('SOR Code')
-            
-            elif e.control.label == 'SOR Code':
-                _sordescription.value = list(filter(lambda item: item.get('SOR Code') == e.control.value, sor_code_list_price))[0].get('SOR Description')
-
-            _sorprice.value = f"£{list(filter(lambda item: item.get('SOR Code') == breakdown_price.controls[0].value, sor_code_list_price))[0].get('SOR Cost (BSW)'):.2f}"
-            
-            _sordescription.tooltip = breakdown_price.controls[1].value
-            
-            individual_total()
-
+            )
+                
             all_prices_breakdown.update()
-        #----------------------------------------------------------------------------
-
         
-        # Function to fill individual Total
-        def individual_total(e=None):
-            
-            if _sorprice.value != '' and _sorqtd.value != '':
+        elif e.control.data == 'Uplift':
+            next_position = len(all_uplifts_miscellaneous.controls)-1
+            all_uplifts_miscellaneous.controls.insert(
+                -1,
+                create_UpliftGroup(
+                    page=page,
+                    position=0,
+                    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                    field_option_source=sor_code_list_uplift,
+                    field_column_uplift='Uplift BSW',
+                    delete=delete_uplift,
+                    overal_total=overal_total
+                ),
+            )
                 
-                try:
-                    _sortotal.value = f"£{float(_sorprice.value.replace('£', '')) * int(_sorqtd.value):.2f}"
-                    
-                except:
-                    print('error')
-            
-            else:
-                _sortotal.value = f"£0.00"
-            overal_total()
-            page.update()
-        #----------------------------------------------------------------------------
-
-        # Object with the set of all elements and details 
-        breakdown_price = ft.ResponsiveRow(
-            col=3,
-            columns=3,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-            controls=[
-                _sorcode := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_code'), dropbox_label='SOR Code', options_list=sor_code_list_codes_price, option_column_text='SOR Code', option_column_hint='SOR Description', on_click_function=dropbox_option_selected),
-                _sordescription := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_description'), dropbox_label='Description', options_list=sor_code_list_descriptions_price, option_column_text='SOR Description', option_column_hint='SOR Description', on_click_function=dropbox_option_selected),
-                _sorprice := create_field(field_label='Price', columns_to_occupy=0.9, field_disable=True, on_change_function=individual_total),
-                _sorqtd := create_field(field_label='Qty', columns_to_occupy=0.9, field_disable=False, field_filter=ft.NumbersOnlyInputFilter(), on_change_function=individual_total),
-                _sortotal := create_field(field_label='Total', columns_to_occupy=0.9, field_disable=True, field_value='£0.00'),
-                _delete := ft.IconButton(on_click=delete_breakdown_price, data=breakdown_price_position, col=0.3, icon=ft.icons.DELETE_FOREVER_ROUNDED, icon_color=bgcolor_field, icon_size=25, tooltip='Delete', style=ft.ButtonStyle(elevation=1, shadow_color='black'), alignment=ft.alignment.center, padding=ft.padding.all(0)),
-                ft.Divider(),
-                
-            ]
-        )
-
-        return breakdown_price
-    #----------------------------------------------------------------------------
+            all_uplifts_miscellaneous.update()
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-    # FUNCTION TO ADD A SET OF SOR CODE DETAILS, CREATED BY THE FUNCTION create_breakdown_price
-    def add_breakdown_price(e):
-        next_position = len(all_prices_breakdown.controls)-1
-        all_prices_breakdown.controls.insert(-1, create_breakdown_price(breakdown_price_position=next_position))
-            
-        all_prices_breakdown.update()
-    #----------------------------------------------------------------------------
-
-
-    # FUNCTION TO DELETE A SET OF SOR CODE DETAILS, CREATED BY THE FUNCTION create_breakdown_price
+    # Function to delete a group of Price Breakdown
     def delete_breakdown_price(e):
         position = e.control.data
         all_prices_breakdown.controls.pop(position)
@@ -288,85 +203,9 @@ def main(page: ft.Page):
         
         all_prices_breakdown.update()
     #----------------------------------------------------------------------------
-    #----------------------- PRICE BREAKDOWN END --------------------------------
+    
 
-
-
-    #----------------------- UPLIFT MISCELLANEOUS START -------------------------
-    # FUNCTION TO CREATE A SET OF UPLIFT MISCELLANEOUS DETAILS
-    def create_uplift(uplift_position: int):
-        
-        # Function to fill SOR Code / Description / Price and to creat a ToolTip
-        def dropbox_option_selected(e):
-            
-            if e.control.label == 'Description':
-                _sorcode_uplift.value = list(filter(lambda item: item.get('SOR Description') == e.control.value, sor_code_list_uplift))[0].get('SOR Code')
-            
-            elif e.control.label == 'SOR Code':
-                _sordescription_uplift.value = list(filter(lambda item: item.get('SOR Code') == e.control.value, sor_code_list_uplift))[0].get('SOR Description')
-
-            _soruplift.value = f"{list(filter(lambda item: item.get('SOR Code') == uplift.controls[0].value, sor_code_list_uplift))[0].get('Uplift BSW')*100:.2f}%"
-            
-            _sordescription_uplift.tooltip = uplift.controls[1].value
-            
-            individual_total()
-
-            all_uplifts_miscellaneous.update()
-        #----------------------------------------------------------------------------
-
-        
-        # Function to fill individual Total
-        def individual_total(e=None):
-            if e:
-                check_digit(e)
-            
-            if _soruplift.value != '' and _sorprice_uplift.value != '':
-                
-                try:
-                    _sortotal.value = f"£{(1+float(_soruplift.value.replace('%', ''))/100) * (float(_sorprice_uplift.value)):.2f}"
-                    
-                except:
-                    _sortotal.value = '£0.00'
-            
-            else:
-                _sortotal.value = f"£0.00"
-            overal_total()
-            page.update()
-        #----------------------------------------------------------------------------
-        
-
-        # Object with the set of all elements and details 
-        uplift = ft.ResponsiveRow(
-            col=3,
-            columns=3,
-            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-            controls=[
-                _sorcode_uplift := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_code'), dropbox_label='SOR Code', options_list=sor_code_list_codes_uplift, option_column_text='SOR Code', option_column_hint='SOR Description', on_click_function=dropbox_option_selected),
-                _sordescription_uplift := create_dropdown(columns_to_occupy=general_sizes.get('column_sor_description'), dropbox_label='Description', options_list=sor_code_list_descriptions_uplift, option_column_text='SOR Description', option_column_hint='SOR Description', on_click_function=dropbox_option_selected),
-                _sordetail_uplift := create_field(field_label='Provide details', columns_to_occupy=3, field_disable=False, field_multiline=True, field_maxlines=5),
-                _sorprice_uplift := create_field(field_prefix='£', field_label='Price', columns_to_occupy=0.9, field_disable=False, field_filter=ft.InputFilter(regex_string=r"^[0-9.]+$"), on_change_function=individual_total),
-                _soruplift := create_field(field_label='% Uplift', columns_to_occupy=0.9, field_disable=True, on_change_function=individual_total),
-                _sortotal := create_field(field_label='Total', columns_to_occupy=0.9, field_disable=True, field_value='£0.00'),
-                _delete := ft.IconButton(on_click=delete_uplift, data=uplift_position, col=0.3, icon=ft.icons.DELETE_FOREVER_ROUNDED, icon_color=bgcolor_field, icon_size=25, tooltip='Delete', style=ft.ButtonStyle(elevation=1, shadow_color='black'), alignment=ft.alignment.center, padding=ft.padding.all(0)),
-                ft.Divider(),
-                
-            ]
-        )
-
-        return uplift
-    #----------------------------------------------------------------------------
-
-
-    # FUNCTION TO ADD A SET OF UPLIFT MISCELLANEOUS DETAILS, CREATED BY THE FUNCTION create_uplift
-    def add_uplift(e):
-        next_position = len(all_uplifts_miscellaneous.controls)-1
-        all_uplifts_miscellaneous.controls.insert(-1, create_uplift(uplift_position=next_position))
-            
-        all_uplifts_miscellaneous.update()
-    #----------------------------------------------------------------------------
-
-
-    # FUNCTION TO DELETE A SET OF UPLIFT MISCELLANEOUS DETAILS, CREATED BY THE FUNCTION create_uplift
+    # Function to delete a group of Uplift - Miscellaneous
     def delete_uplift(e):
         position = e.control.data
         all_uplifts_miscellaneous.controls.pop(position)
@@ -378,10 +217,9 @@ def main(page: ft.Page):
         
         all_uplifts_miscellaneous.update()
     #----------------------------------------------------------------------------
-    #----------------------- UPLIFT MISCELLANEOUS END -------------------------
+    
 
-
-    # FUNCTION TO CREATE AN OVERAL TOTAL AND ADD THIS VALUE TO THE CORRESPONDING FIELD
+    # Function to update the Overal Total and add this value to the corresponding field
     def overal_total():
         total = 0
         for item in all_prices_breakdown.controls[:-1]:
@@ -632,7 +470,12 @@ def main(page: ft.Page):
                     ft.Container(
                         col=1, 
                         alignment=ft.alignment.center_left,
-                        content=ft.Image(src='images/cs_logo.png', height=general_sizes.get('logo_header').get('height'), width=general_sizes.get('logo_header').get('width'), col=6),
+                        content=ft.Image(
+                            src='images/cs_logo.png', 
+                            height=formatting.get('logo_header').get('height') if formatting != None else None,
+                            width=formatting.get('logo_header').get('width') if formatting != None else None, 
+                            col=6
+                        ),
                     ),
                     
                     ft.Container(
@@ -640,7 +483,13 @@ def main(page: ft.Page):
                         alignment=ft.alignment.center_right,
                         content=ft.Column(
                             controls=[
-                                ft.Text(value='Approval Request', size=general_sizes.get('text_header'), color=ft.colors.GREY_700, weight=ft.FontWeight.BOLD, text_align=ft.TextAlign.RIGHT),
+                                ft.Text(
+                                    value='Approval Request', 
+                                    size=formatting.get('text_header') if formatting != None else None,
+                                    color=ft.colors.GREY_700, 
+                                    weight=ft.FontWeight.BOLD, 
+                                    text_align=ft.TextAlign.RIGHT
+                                ),
                             ],
                         )
                     ),
@@ -649,7 +498,7 @@ def main(page: ft.Page):
     )
     #----------------------------------------------------------------------------
     
-    # FIELDS
+    # FIELDS: body of the form, where all fields are created
     form=ft.Column(
         scroll=ft.ScrollMode.ALWAYS,
         expand=True,
@@ -660,30 +509,125 @@ def main(page: ft.Page):
                 content=ft.ResponsiveRow(
                     columns=3,
                     controls=[
-                        address := create_field('Address', 3),
-                        uprn := create_field('UPRN', 1),
-                        postcode := create_field('Postcode', 1),
-                        tenure := create_dropdown(1, 'Tenure', tenure_list, option_column_text='Tenure Types', option_column_hint='Tenure Types'),
-                        work_description := create_field('Description of Work', 3, field_multiline=True, field_maxlines=5),
+                        address := create_Textfield(
+                            columns_to_occupy=3, 
+                            field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                            field_label='Address',
+                            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+                        ),
+
+                        uprn := create_Textfield(
+                            columns_to_occupy=1, 
+                            field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                            field_label='UPRN',
+                            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+                        ),
+
+                        postcode := create_Textfield(
+                            columns_to_occupy=1,
+                            field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                            field_label='Postcode',
+                            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+                        ),
+                        
+                        tenure := create_Dropdown(
+                            columns_to_occupy=1,
+                            field_label='Tenure', 
+                            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                            field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                            field_option_source=tenure_list,
+                            field_option_text='Tenure Types',
+                            field_option_tooltip='Tenure Types'
+                        ),
+
+                        work_description := create_Textfield(
+                            columns_to_occupy=3, 
+                            field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                            field_label='Description of Work', 
+                            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+                            field_multiline=True, 
+                            field_maxlines=5
+                        ),
+                        
                         ft.Divider(color="#2A685A"),
                         
-                        ft.Text(value='Price Breakdown', size=general_sizes.get('title'), color=ft.colors.GREY_300),
+                        ft.Text(
+                            value='Price Breakdown',
+                            size=formatting.get('title') if formatting != None else None,
+                            color=ft.colors.GREY_300
+                        ),
                         all_prices_breakdown := ft.ResponsiveRow(
                             col=3,
                             columns=3,
                             controls=[
-                                create_breakdown_price(breakdown_price_position=0),
-                                ft.Row(alignment=ft.MainAxisAlignment.END, col=3, controls=[ft.FloatingActionButton(tooltip='New SOR Code', col=0.3, icon=ft.icons.ADD, mini=True, shape=ft.CircleBorder('circle'), bgcolor=bgcolor_field, on_click=add_breakdown_price)]),
+                                create_PriceBreakdownGroup(
+                                    page=page,
+                                    position=0,
+                                    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                                    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                                    field_option_source=sor_code_list_price,
+                                    field_column_price='SOR Cost (BSW)',
+                                    delete=delete_breakdown_price,
+                                    overal_total=overal_total
+                                ),
+                                ft.Row(
+                                    alignment=ft.MainAxisAlignment.END, 
+                                    col=3, 
+                                    controls=[
+                                        ft.FloatingActionButton(
+                                            tooltip='New SOR Code', 
+                                            col=0.3, 
+                                            icon=ft.icons.ADD, 
+                                            mini=True, 
+                                            shape=ft.CircleBorder('circle'), 
+                                            bgcolor=getattr(ft.colors, general_formatting.get('field_bgcolor')),
+                                            on_click=add_group,
+                                            data='Price Breakdown'
+                                        )
+                                    ]
+                                ),
                             ]
                         ),
                         
-                        ft.Text(value='Uplift - Miscellaneous', size=general_sizes.get('title'), color=ft.colors.GREY_300),
+                        ft.Text(
+                            value='Uplift - Miscellaneous',
+                            size=formatting.get('title') if formatting != None else None,
+                            color=ft.colors.GREY_300
+                        ),
                         all_uplifts_miscellaneous := ft.ResponsiveRow(
                             col=3,
                             columns=3,
                             controls=[
-                                create_uplift(uplift_position=0),
-                                ft.Row(alignment=ft.MainAxisAlignment.END, col=3, controls=[ft.FloatingActionButton(tooltip='New SOR Code', col=0.3, icon=ft.icons.ADD, mini=True, shape=ft.CircleBorder('circle'), bgcolor=bgcolor_field, on_click=add_uplift)]),
+                                create_UpliftGroup(
+                                    page=page,
+                                    position=0,
+                                    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                                    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                                    field_option_source=sor_code_list_uplift,
+                                    field_column_uplift='Uplift BSW',
+                                    delete=delete_uplift,
+                                    overal_total=overal_total
+                                ),
+                                ft.Row(
+                                    alignment=ft.MainAxisAlignment.END, 
+                                    col=3, 
+                                    controls=[
+                                        ft.FloatingActionButton(
+                                            tooltip='New Uplift', 
+                                            col=0.3, 
+                                            icon=ft.icons.ADD, 
+                                            mini=True, 
+                                            shape=ft.CircleBorder('circle'), 
+                                            bgcolor=getattr(ft.colors, general_formatting.get('field_bgcolor')),
+                                            on_click=add_group,
+                                            data='Uplift'
+                                        )
+                                    ]
+                                ),
                             ]
                         ),
                                                 
@@ -693,18 +637,41 @@ def main(page: ft.Page):
                             alignment=ft.MainAxisAlignment.END,
                             vertical_alignment=ft.CrossAxisAlignment.CENTER,
                             controls=[
-                                ft.Text(value='Overal Total: ', size=general_sizes.get('subtitle'), color=ft.colors.GREY_300, col=2, text_align=ft.TextAlign.END), 
-                                _gran_total_value := create_field(field_value='£0.00', field_label='Overal Total', field_disable=True, columns_to_occupy=1)
+                                ft.Text(
+                                    value='Overal Total: ',
+                                    size=formatting.get('subtitle') if formatting != None else None,
+                                    color=ft.colors.GREY_300,
+                                    col=2,
+                                    text_align=ft.TextAlign.END
+                                ),
+                                _gran_total_value := create_Textfield(
+                                    columns_to_occupy=1,
+                                    field_value='£0.00',
+                                    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                                    field_label='Overal Total',
+                                    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                                    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+                                    field_disable=True,
+                                ),
                             ], 
                         ),
 
-                        ft.Text(value='Evidences, including photos', size=general_sizes.get('title'), color=ft.colors.GREY_300),
+                        ft.Text(
+                            value='Evidences, including photos', 
+                            size=formatting.get('title') if formatting != None else None,
+                            color=ft.colors.GREY_300
+                        ),
                         ft.ElevatedButton(
                             col=1,
                             text="Upload Files",
                             on_click=lambda _: file_picker.pick_files(dialog_title='Clear Safety - Select Evidences', allow_multiple=True),
                             height=50,
-                            style=ft.ButtonStyle(color=ft.colors.BLACK, bgcolor=bgcolor_field, elevation=10, overlay_color=ft.colors.TEAL_ACCENT_700),
+                            style=ft.ButtonStyle(
+                                color=ft.colors.BLACK, 
+                                bgcolor=getattr(ft.colors, general_formatting.get('field_bgcolor')) if formatting != None else None,
+                                elevation=10, 
+                                overlay_color=ft.colors.TEAL_ACCENT_700
+                            ),
                         ),
                         
                         card_list_files := ft.Card(
@@ -724,7 +691,12 @@ def main(page: ft.Page):
                                     text="Submit",
                                     on_click=submit_form,
                                     height=50,
-                                    style=ft.ButtonStyle(color=ft.colors.BLACK, bgcolor=bgcolor_field, elevation=10, overlay_color=ft.colors.TEAL_ACCENT_700),
+                                    style=ft.ButtonStyle(
+                                        color=ft.colors.BLACK, 
+                                        bgcolor=getattr(ft.colors, general_formatting.get('field_bgcolor')) if formatting != None else None,
+                                        elevation=10, 
+                                        overlay_color=ft.colors.TEAL_ACCENT_700
+                                    ),
                                 ),
                             ]
                         ),

@@ -185,4 +185,4 @@ def table_fields(baseID: str, tabaseID: str):
 
 
 if __name__ == '__main__':
-    print(get_Records(baseID='appB0phO3KnX4WexS', tableID='tblycaJHzyRku5gYp'))
+    print(list(filter(lambda item: item.get('Uplift')=='Yes', get_Records(baseID='appB0phO3KnX4WexS', tableID='tblFUxOPoerfAg9vN'))))
