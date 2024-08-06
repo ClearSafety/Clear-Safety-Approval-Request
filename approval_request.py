@@ -312,12 +312,17 @@ def main(page: ft.Page):
                 
                 body_error_alert = 'Error uploading these files. Please try again.\n' + '\n'.join(list(map(lambda item: f' - {item.get("name")}', error_upload)))
                 upload_error_dialog = ft.AlertDialog(
-                    bgcolor=bgcolor_page,
+                    bgcolor=getattr(ft.colors, general_formatting.get('page_bgcolor')) if general_formatting != None else None,
                     modal=True,
                     title=ft.Text(value='Clear Safety - Error', size=20, weight=ft.FontWeight.BOLD),
                     content=ft.Text(value=body_error_alert),
                     actions=[
-                        ft.ElevatedButton(text='     OK     ', on_click=close_dialog, bgcolor=bgcolor_field, color=ft.colors.GREY_300, elevation=5)
+                        ft.ElevatedButton(
+                            text='     OK     ',
+                            on_click=close_dialog, 
+                            bgcolor=getattr(ft.colors, general_formatting.get('page_bgcolor')) if general_formatting != None else None, 
+                            color=ft.colors.GREY_300, 
+                            elevation=5)
                     ],
                     actions_alignment=ft.MainAxisAlignment.CENTER,
                 )
@@ -409,13 +414,61 @@ def main(page: ft.Page):
                         tenure.value=None
                         work_description.value=''
                         all_prices_breakdown.controls=[
-                                create_breakdown_price(breakdown_price_position=0),
-                                ft.Row(alignment=ft.MainAxisAlignment.END, col=3, controls=[ft.FloatingActionButton(tooltip='New SOR Code', col=0.3, icon=ft.icons.ADD, mini=True, shape=ft.CircleBorder('circle'), bgcolor=bgcolor_field, on_click=add_breakdown_price)]),
-                            ]
+                            create_PriceBreakdownGroup(
+                                page=page,
+                                position=0,
+                                field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                                field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                                field_option_source=sor_code_list_price,
+                                field_column_price='SOR Cost (BSW)',
+                                delete=delete_breakdown_price,
+                                overal_total=overal_total
+                            ),
+                            ft.Row(
+                                alignment=ft.MainAxisAlignment.END, 
+                                col=3, 
+                                controls=[
+                                    ft.FloatingActionButton(
+                                        tooltip='New SOR Code', 
+                                        col=0.3, 
+                                        icon=ft.icons.ADD, 
+                                        mini=True, 
+                                        shape=ft.CircleBorder('circle'), 
+                                        bgcolor=getattr(ft.colors, general_formatting.get('field_bgcolor')),
+                                        on_click=add_group,
+                                        data='Price Breakdown'
+                                    )
+                                ]
+                            ),
+                        ]
                         all_uplifts_miscellaneous.controls=[
-                                create_uplift(uplift_position=0),
-                                ft.Row(alignment=ft.MainAxisAlignment.END, col=3, controls=[ft.FloatingActionButton(tooltip='New SOR Code', col=0.3, icon=ft.icons.ADD, mini=True, shape=ft.CircleBorder('circle'), bgcolor=bgcolor_field, on_click=add_uplift)]),
-                            ]
+                            create_UpliftGroup(
+                                page=page,
+                                position=0,
+                                field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                                field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                                field_option_source=sor_code_list_uplift,
+                                field_column_uplift='Uplift BSW',
+                                delete=delete_uplift,
+                                overal_total=overal_total
+                            ),
+                            ft.Row(
+                                alignment=ft.MainAxisAlignment.END, 
+                                col=3, 
+                                controls=[
+                                    ft.FloatingActionButton(
+                                        tooltip='New Uplift', 
+                                        col=0.3, 
+                                        icon=ft.icons.ADD, 
+                                        mini=True, 
+                                        shape=ft.CircleBorder('circle'), 
+                                        bgcolor=getattr(ft.colors, general_formatting.get('field_bgcolor')),
+                                        on_click=add_group,
+                                        data='Uplift'
+                                    )
+                                ]
+                            ),
+                        ]
                         _gran_total_value.value=''
                         card_list_files.content.controls.clear()
                     page.update()
