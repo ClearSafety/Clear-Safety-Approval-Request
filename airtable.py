@@ -51,9 +51,10 @@ def get_Records(baseID: str, tableID: str, fields: list=None) -> list:
             content = list(map(lambda x: x.get('fields'), data.get('records')))
             records.extend(content)
             next = data.get('offset')
-        if next == None:
-            break
-            
+            if next == None:
+                break
+        else:
+            return []
     return records
 
 
@@ -185,4 +186,8 @@ def table_fields(baseID: str, tabaseID: str):
 
 
 if __name__ == '__main__':
-    print(list(filter(lambda item: item.get('Uplift')=='Yes', get_Records(baseID='appB0phO3KnX4WexS', tableID='tblFUxOPoerfAg9vN'))))
+    print(len(list(filter(lambda item: item.get('Uplift')=='No', get_Records(baseID='appB0phO3KnX4WexS', tableID='tblFUxOPoerfAg9vN')))))
+
+    # baseid = 'appnACNlBdniubvWe'
+    # tableid = 'tblE5yfkwLy3HyOHC'
+    # print(create_Record(baseID=baseid, tableID=tableid, content={'Price breakdown': '50'}))

@@ -29,19 +29,10 @@ try:
     sor_code_list_price = list(filter(lambda item: item.get('Uplift') == 'No' and item.get('SOR Cost (BSW)') != 0, sor_code_list))
     sor_code_list_uplift = list(filter(lambda item: item.get('Uplift') == 'Yes' and item.get('Uplift BSW') != 0, sor_code_list))
 
-    # sor_code_list_codes_price = sorted(sor_code_list_price, key=lambda item: item.get('SOR Code'))
-    # sor_code_list_descriptions_price = sorted(sor_code_list_price, key=lambda item: item.get('SOR Description'))
-
-    # sor_code_list_codes_uplift = sorted(sor_code_list_uplift, key=lambda item: item.get('SOR Code'))
-    # sor_code_list_descriptions_uplift = sorted(sor_code_list_uplift, key=lambda item: item.get('SOR Description'))
 except:
     sor_code_list = []
     sor_code_list_price = []
-    sor_code_list_uplift = []
-    # sor_code_list_codes_price = []
-    # sor_code_list_descriptions_price = []
-    # sor_code_list_codes_uplift = []
-    # sor_code_list_descriptions_uplift = []    
+    sor_code_list_uplift = []  
 #----------------------------------------------------------------------------
 ###############################################################################################################################################################################################
 
@@ -357,33 +348,39 @@ def main(page: ft.Page):
 
     # SUBMIT FORM
     def submit_form(e):
-        allevidences =[]
+        allevidences = []
         if len(success_upload) > 0:
             allevidences = list(map(lambda item: {'url': item.get('url'), 'filename': item.get('name')}, success_upload))
 
         breakdownAnduplifts = ''
-        if len(all_prices_breakdown.controls) > 0:
+        if len(all_prices_breakdown.controls) > 1:
             for item in all_prices_breakdown.controls[:-1]:
                 sor_code = item.controls[0].value
-                sor_description = item.controls[1].value
-                sor_price = item.controls[2].value
-                sor_qtd = item.controls[3].value
-                sor_total = item.controls[4].value
-                breakdownAnduplifts += f'SOR Code: {sor_code}, SOR Description: {sor_description}, Price: {sor_price}, Quantity: {sor_qtd}, Total: {sor_total}\n'
+                if sor_code:
+                    sor_description = item.controls[1].value
+                    sor_price = item.controls[2].value
+                    sor_qtd = item.controls[3].value
+                    sor_total = item.controls[4].value
+                    breakdownAnduplifts += f'SOR Code: {sor_code}, SOR Description: {sor_description}, Price: {sor_price}, Quantity: {sor_qtd}, Total: {sor_total}\n'
+                
         
-        if len(all_uplifts_miscellaneous.controls) > 0:
-            breakdownAnduplifts += '\n UPLIFTS\n'
+        if len(all_uplifts_miscellaneous.controls) > 1:
+            breakdownAnduplifts += '\nUPLIFTS\n'
             
 
             for item in all_uplifts_miscellaneous.controls[:-1]:
                 up_code = item.controls[0].value
-                up_description = item.controls[1].value
-                up_details = item.controls[2].value
-                up_price = item.controls[3].value
-                up_percentage = item.controls[4].value
-                up_total = item.controls[5].value
-                breakdownAnduplifts += f'SOR Code: {up_code}, SOR Description: {up_description}, Details: {up_details}, Price: {up_price}, Percentage: {up_percentage}, Total: {up_total}\n'
+                if up_code:
+                    up_description = item.controls[1].value
+                    up_details = item.controls[2].value
+                    up_price = item.controls[3].value
+                    up_percentage = item.controls[4].value
+                    up_total = item.controls[5].value
+                    breakdownAnduplifts += f'SOR Code: {up_code}, SOR Description: {up_description}, Details: {up_details}, Price: {up_price}, Percentage: {up_percentage}, Total: {up_total}\n'
         
+        if breakdownAnduplifts == '\nUPLIFTS\n':
+            breakdownAnduplifts = ''
+
         new_record = create_Record(
             baseID='appnACNlBdniubvWe',
             tableID='tblE5yfkwLy3HyOHC',
