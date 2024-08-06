@@ -55,12 +55,16 @@ def create_UpliftGroup(
         if e.control.label == 'Description':
             try:
                 _sorcode.value = list(filter(lambda item: item.get('SOR Description') == e.control.value, field_option_source))[0].get('SOR Code')
+                for item in _sorcode.options:
+                    item.content.border = None
             except:
                 _sorcode.value=None
 
         elif e.control.label == 'SOR Code':
             try:
                 _sordescription.value = list(filter(lambda item: item.get('SOR Code') == e.control.value, field_option_source))[0].get('SOR Description')
+                for item in _sordescription.options:
+                    item.content.border = None
             except:
                 _sordescription.value=None
         
@@ -241,12 +245,7 @@ if __name__ == '__main__':
               
                 for field in item.controls[:-2]:
                     if field.label == 'Total' and field.value != '':
-                        total += float(field.value.replace('£', ''))
-
-            # for item in all_uplifts_miscellaneous.controls[:-1]:
-            #     for field in item.controls[:-2]:
-            #         if field.label == 'Total' and field.value != '':
-            #             total += float(field.value.replace('£', ''))        
+                        total += float(field.value.replace('£', ''))     
             
             _gran_total_value.value = f'£{total:.2f}'
             _gran_total_value.update()
