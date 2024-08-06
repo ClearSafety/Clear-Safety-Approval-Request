@@ -193,7 +193,7 @@ def main(page: ft.Page):
         overal_total()
         
         all_prices_breakdown.update()
-    #----------------------------------------------------------------------------
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
 
     # Function to delete a group of Uplift - Miscellaneous
@@ -207,7 +207,7 @@ def main(page: ft.Page):
         overal_total()
         
         all_uplifts_miscellaneous.update()
-    #----------------------------------------------------------------------------
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
 
     # Function to update the Overal Total and add this value to the corresponding field
@@ -225,7 +225,19 @@ def main(page: ft.Page):
         
         _gran_total_value.value = f'£{total:.2f}'
         _gran_total_value.update()
-    #----------------------------------------------------------------------------
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+    # Function to delete uploaded file
+    def delete_file(e):
+        index = e.control.data
+        card_list_files.content.controls = list(filter(lambda item: item.data != index, card_list_files.content.controls))
+        card_list_files.update()
+
+        for idx, item in enumerate(success_upload):
+            if item.get('index') == index:
+                success_upload.pop(idx)
+    #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
     # FUNCTION TO CREATE A BOX DIALOG TO UPDATE FILES INTO THE FORM
@@ -320,8 +332,6 @@ def main(page: ft.Page):
                 page.overlay.append(upload_error_dialog)
                 upload_error_dialog.open=True
                 page.update()
-                
- 
 
             
             if len(success_upload) > 0:
@@ -334,11 +344,23 @@ def main(page: ft.Page):
                             vertical_alignment=ft.CrossAxisAlignment.CENTER,
                             alignment=ft.MainAxisAlignment.CENTER,
                             controls=[
-                                ft.Icon(col=1, name=ft.icons.FILE_COPY),
-                                ft.Text(col=3, value=item.get('name')),
-                                ft.IconButton(col=1, icon=ft.icons.DELETE),
+                                ft.TextButton(
+                                    col=4,
+                                    tooltip=item.get('name'),
+                                    on_click=lambda _: page.launch_url(item.get('url')),
+                                    content=ft.ResponsiveRow(
+                                        columns=5,
+                                        alignment=ft.MainAxisAlignment.START,
+                                        controls=[
+                                            ft.Icon(col=1, name=ft.icons.FILE_COPY, color=getattr(ft.colors, general_formatting.get('page_bgcolor')) if general_formatting != None else None),
+                                            ft.Text(col=3, value=item.get('name'), overflow=ft.TextOverflow.ELLIPSIS),
+                                        ]
+                                    )
+                                ),
+                                ft.IconButton(col=1, icon=ft.icons.DELETE, icon_color=ft.colors.RED_500, on_click=delete_file, data=item.get('index')),
                                 ft.Divider(height=1, visible=True if len(success_upload) > 1 else False)
                             ],
+                            data=item.get('index')
                         )
                     )
                 card_list_files.update()
@@ -726,6 +748,8 @@ def main(page: ft.Page):
                         
                         card_list_files := ft.Card(
                             col=2,
+                            color=getattr(ft.colors, general_formatting.get('card_bgcolor')) if general_formatting != None else None,
+                            elevation=10,
                             content=ft.Column(
                                 spacing=0,
                                 height=120,

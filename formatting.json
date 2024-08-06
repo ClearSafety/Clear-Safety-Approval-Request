@@ -2,6 +2,7 @@
     "general": {
         "page_bgcolor": "TEAL_800",
         "field_bgcolor": "TEAL_400",
+        "card_bgcolor": "TEAL_300",
         "field_border_color": "GREY_300",
         "field_cursor_color": "GREY_300"
     },
