@@ -92,6 +92,14 @@ def main(page: ft.Page):
     success_upload = []
     error_upload = []
     upload_directory = "assets/uploads"
+    upload_file_progress=ft.AlertDialog(
+                title=ft.Text('Uploading files...'),
+                content=ft.ProgressBar(
+                width=200,
+                height=30,
+                value=0
+                )
+            )
     ###########################################################################################################################################################################################
     
 
@@ -238,11 +246,12 @@ def main(page: ft.Page):
             if item.get('index') == index:
                 success_upload.pop(idx)
     #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
+    
 
     # FUNCTION TO CREATE A BOX DIALOG TO UPDATE FILES INTO THE FORM
     def on_files_selected(e):
         if e.files:
+            page.open(upload_file_progress)  # OPEN PROGRESS BAR
             next_index = len(success_upload)
             for file in e.files:
                 signed_url=''
@@ -304,7 +313,8 @@ def main(page: ft.Page):
                 if response_upload_to_google == '':
                     error_upload.append({'name': filename})
                 
-
+                upload_file_progress.content.value += 1/len(e.files)  # UPDATE PROGRESS BAR
+                upload_file_progress.update()  # UPDATE PROGRESS BAR
             
             if len(error_upload) > 0:
                 def close_dialog(e):
@@ -364,6 +374,9 @@ def main(page: ft.Page):
                         )
                     )
                 card_list_files.update()
+            
+            page.close(upload_file_progress)  # CLOSE PROGRESS BAR
+            upload_file_progress.content.value=0 # RESET PROGRESS BAR
         
     file_picker = ft.FilePicker(on_result=on_files_selected)
 
