@@ -1,6 +1,5 @@
 import flet as ft
-from airtable import *
-from google_cloud import *
+from module_airtable import *
 from time import sleep
 import os
 import json
@@ -238,24 +237,32 @@ def main(page: ft.Page):
 
     # Function to delete uploaded file
     def delete_file(e):
-        index = e.control.data
-        card_list_files.content.controls = list(filter(lambda item: item.data != index, card_list_files.content.controls))
+        blob_name = e.control.data
+        #Deleting from Card where the upload files are shown
+        card_list_files.content.controls = list(filter(lambda item: item.data != blob_name, card_list_files.content.controls))
         card_list_files.update()
 
+        #Delete from the list where there are all updated files data that is used to create record in Airtable
         for idx, item in enumerate(success_upload):
-            if item.get('index') == index:
+            if item.get('blob_name') == blob_name:
                 success_upload.pop(idx)
+        
+        #Deleting from Azure
+        try:
+            deletefile_azure(blob_name=blob_name)
+        except:
+            ...
     #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
 
-    # FUNCTION TO CREATE A BOX DIALOG TO UPDATE FILES INTO THE FORM
+    # FUNCTION TO CREATE A BOX DIALOG TO UPDATE FILES INTO THE FORM, UPLOAD INTO AZURE CLOUD AND RETRIEVE PUBLIC_URL
     def on_files_selected(e):
         if e.files:
-            page.open(upload_file_progress)  # OPEN PROGRESS BAR
-            next_index = len(success_upload)
+            # Open progress bar
+            page.open(upload_file_progress) 
+            
+            # Iterate over all files selected by the user
             for file in e.files:
-                signed_url=''
-                file_to_upload=''                
                 
                 filename = file.name
                 upload_url = page.get_upload_url(filename, 60)
@@ -271,57 +278,40 @@ def main(page: ft.Page):
                     ]
                 )
                 
-                # Creating a signed URL
-                signed_url = generate_upload_signed_url_v4(file_name=filename)
-                
-                # Upload file into Google Cloud Storage
-                path = f'{upload_directory}/{file.name}'
-                count=1
-                response_upload_to_google=''
-                while count < 10:
-                    if signed_url=='' or signed_url==False or check_file(upload_directory, filename)==False:
-                        sleep(count)
-                        count+=1
-                    else:
-                        
-                        with open(path, 'rb') as file_to_upload:
-                            # Use Requests to do the upload
-                            response_upload_to_google = requests.put(signed_url, data=file_to_upload)
-                            
-                            if response_upload_to_google.status_code == 200:
-                                public_url = make_file_public_and_get_url(file_name=filename)
-                                
-                                if public_url != False:
-                                    success_upload.append(
-                                        {
-                                            'index': next_index,
-                                            'name': file.name,
-                                            'url': public_url,
-                                        }
-                                    )
-                                    next_index += 1
-                                    break
-                                
-                                else:
-                                    error_upload.append({'name': filename})
-                                    break
+                # Upload file into Azure Cloud Storage and retrieve public URL. It will try 5 times.
+                count = 1
+                while count <= 5:
+                    public_url=uploadfile_azure(
+                        file_name=filename,
+                        path_file=upload_directory
+                    )
+                    sleep(1)
 
-                            else:
-                                error_upload.append({'name': filename})
-                                break
+                    if public_url==None or public_url=='':
+                        sleep(count)
+                        count += 1
+                    else:
+                        success_upload.append(
+                            {
+                                'blob_name': public_url.get('blob_name'),
+                                'name': file.name,
+                                'url': public_url.get('url'),
+                            }
+                        )
+                        break
                 
-                if response_upload_to_google == '':
+                if public_url==None or public_url=='':
                     error_upload.append({'name': filename})
                 
                 upload_file_progress.content.value += 1/len(e.files)  # UPDATE PROGRESS BAR
                 upload_file_progress.update()  # UPDATE PROGRESS BAR
             
+            # If error happens with the upload file process, a dialog window will be displayed with the file name
             if len(error_upload) > 0:
                 def close_dialog(e):
                     upload_error_dialog.open=False
                     error_upload.clear()
                     page.update()
-                    
                 
                 body_error_alert = 'Error uploading these files. Please try again.\n' + '\n'.join(list(map(lambda item: f' - {item.get("name")}', error_upload)))
                 upload_error_dialog = ft.AlertDialog(
@@ -342,8 +332,8 @@ def main(page: ft.Page):
                 page.overlay.append(upload_error_dialog)
                 upload_error_dialog.open=True
                 page.update()
-
             
+            # If the upload is successful, it will be added to a Card to be displayed to the user
             if len(success_upload) > 0:
                 card_list_files.content.controls.clear()
                 for item in success_upload:
@@ -359,7 +349,7 @@ def main(page: ft.Page):
                                     tooltip=item.get('name'),
                                     on_click=lambda _: page.launch_url(item.get('url')),
                                     content=ft.ResponsiveRow(
-                                        columns=5,
+                                        columns=4,
                                         alignment=ft.MainAxisAlignment.START,
                                         controls=[
                                             ft.Icon(col=1, name=ft.icons.FILE_COPY, color=getattr(ft.colors, general_formatting.get('page_bgcolor')) if general_formatting != None else None),
@@ -367,14 +357,15 @@ def main(page: ft.Page):
                                         ]
                                     )
                                 ),
-                                ft.IconButton(col=1, icon=ft.icons.DELETE, icon_color=ft.colors.RED_500, on_click=delete_file, data=item.get('index')),
+                                ft.IconButton(col=1, icon=ft.icons.DELETE, icon_color=ft.colors.RED_500, on_click=delete_file, data=item.get('blob_name')),
                                 ft.Divider(height=1, visible=True if len(success_upload) > 1 else False)
                             ],
-                            data=item.get('index')
+                            data=item.get('blob_name')
                         )
                     )
                 card_list_files.update()
             
+            # Close the progress bar when the upload processo is concluded
             page.close(upload_file_progress)  # CLOSE PROGRESS BAR
             upload_file_progress.content.value=0 # RESET PROGRESS BAR
         

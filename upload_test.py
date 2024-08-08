@@ -1,11 +1,17 @@
 import flet as ft
-from azure_cloud import *
+from module_azure_cloud import *
 from time import sleep
+import os
+print('#'*50)
+os.getenv('FLET_SECRET_KEY')
+
+
 
 def main(page: ft.Page):
     
 
     def onresult(e):
+        print(e.files)
         for file in e.files:
             filename=file.name
             upload_url=page.get_upload_url(filename, 60)
