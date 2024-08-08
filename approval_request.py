@@ -1,5 +1,6 @@
 import flet as ft
 from module_airtable import *
+from module_azure_cloud import *
 from time import sleep
 import os
 import json
@@ -32,18 +33,7 @@ except:
     sor_code_list = []
     sor_code_list_price = []
     sor_code_list_uplift = []  
-#----------------------------------------------------------------------------
-###############################################################################################################################################################################################
-
-
-
-
-###############################################################################################################################################################################################
-# GENERAL FUNCIONS
-###############################################################################################################################################################################################
-def check_file(folder, filename):
-    path = os.path.join(folder, filename)
-    return os.path.isfile(path)
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###############################################################################################################################################################################################
 
 
@@ -235,7 +225,7 @@ def main(page: ft.Page):
     #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-    # Function to delete uploaded file
+    # Function to delete the uploaded file
     def delete_file(e):
         blob_name = e.control.data
         #Deleting from Card where the upload files are shown
@@ -280,15 +270,20 @@ def main(page: ft.Page):
                 
                 # Upload file into Azure Cloud Storage and retrieve public URL. It will try 5 times.
                 count = 1
+                public_url = ''
                 while count <= 5:
-                    public_url=uploadfile_azure(
-                        file_name=filename,
-                        path_file=upload_directory
-                    )
-                    sleep(1)
+                    try:
+                        public_url=uploadfile_azure(
+                            file_name=filename,
+                            path_file=upload_directory
+                        )
+                        sleep(1)
+                    except:
+                        sleep(1)
+                        count += 1
 
                     if public_url==None or public_url=='':
-                        sleep(count)
+                        sleep(1)
                         count += 1
                     else:
                         success_upload.append(
@@ -317,8 +312,8 @@ def main(page: ft.Page):
                 upload_error_dialog = ft.AlertDialog(
                     bgcolor=getattr(ft.colors, general_formatting.get('page_bgcolor')) if general_formatting != None else None,
                     modal=True,
-                    title=ft.Text(value='Clear Safety - Error', size=20, weight=ft.FontWeight.BOLD),
-                    content=ft.Text(value=body_error_alert),
+                    title=ft.Text(value='Clear Safety - Error', size=20, weight=ft.FontWeight.BOLD, color=ft.colors.GREY_300),
+                    content=ft.Text(value=body_error_alert, color=ft.colors.GREY_300),
                     actions=[
                         ft.ElevatedButton(
                             text='     OK     ',
@@ -426,6 +421,13 @@ def main(page: ft.Page):
             def close_dialog_submission_success(e):
                     dialog_submission_success.open=False
                     page.update()
+
+                    # Delete all files from Azure Cloud Service
+                    try:
+                        for item in success_upload:
+                            deletefile_azure(item.get('blob_name'))
+                    except:
+                        ...
                     
                     if e.control.text=='Close':
                         page.controls.clear()
