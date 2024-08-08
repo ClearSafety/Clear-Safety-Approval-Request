@@ -186,8 +186,21 @@ def table_fields(baseID: str, tabaseID: str):
 
 
 if __name__ == '__main__':
-    print(len(list(filter(lambda item: item.get('Uplift')=='No', get_Records(baseID='appB0phO3KnX4WexS', tableID='tblFUxOPoerfAg9vN')))))
+    #print(len(list(filter(lambda item: item.get('Uplift')=='No', get_Records(baseID='appB0phO3KnX4WexS', tableID='tblFUxOPoerfAg9vN')))))
 
-    # baseid = 'appnACNlBdniubvWe'
-    # tableid = 'tblE5yfkwLy3HyOHC'
+    baseid = 'appnACNlBdniubvWe'
+    tableid = 'tblE5yfkwLy3HyOHC'
     # print(create_Record(baseID=baseid, tableID=tableid, content={'Price breakdown': '50'}))
+    create_Record(
+        baseID=baseid, 
+        tableID=tableid, 
+        content={
+            'Evidences': [
+                {
+                    'url': 'https://clearsafetyfiles.blob.core.windows.net/temporaryfiles/content_icon%20(1).png?sp=r&st=2024-08-07T13:07:11Z&se=2024-08-07T21:07:11Z&sv=2022-11-02&sr=b&sig=I%2FEjz1KJATlYbNGbhvlrD5nqJg%2B%2F%2BcWFwHlUVxxqQWI%3D',
+                    'filename': 'img.png'
+                }
+            ]
+        }
+    )
+    

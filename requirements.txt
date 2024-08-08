@@ -1,3 +1,4 @@
 flet
 google-cloud-storage
+azure-storage-blob
 pillow
