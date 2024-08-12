@@ -1,9 +1,10 @@
 import flet as ft
-from module_airtable import *
-from module_azure_cloud import *
 from time import sleep
 import os
 import json
+from module_airtable import *
+from module_azure_cloud import *
+from module_general_functions import *
 from module_create_dropdown import create_Dropdown
 from module_create_textfield import create_Textfield
 from module_create_pricebreakdown import create_PriceBreakdownGroup
@@ -255,48 +256,54 @@ def main(page: ft.Page):
             for file in e.files:
                 
                 filename = file.name
-                upload_url = page.get_upload_url(filename, 60)
                 
-                # Upload files into 'assets/uploads'
-                file_picker.upload(
-                    files=[
-                        ft.FilePickerUploadFile(
-                            name=filename, 
-                            upload_url=upload_url, 
-                            method="PUT"
-                        )
-                    ]
-                )
+                # Check the the selected file has suspicious extension, like '.dll', '.exe' etc
                 
-                # Upload file into Azure Cloud Storage and retrieve public URL. It will try 5 times.
-                count = 1
-                public_url = ''
-                while count <= 5:
-                    try:
-                        public_url=uploadfile_azure(
-                            file_name=filename,
-                            path_file=upload_directory
-                        )
-                        sleep(1)
-                    except:
-                        sleep(1)
-                        count += 1
-
-                    if public_url==None or public_url=='':
-                        sleep(1)
-                        count += 1
-                    else:
-                        success_upload.append(
-                            {
-                                'blob_name': public_url.get('blob_name'),
-                                'name': file.name,
-                                'url': public_url.get('url'),
-                            }
-                        )
-                        break
-                
-                if public_url==None or public_url=='':
+                if not Filetype().safefiletype(filename):
                     error_upload.append({'name': filename})
+                else:
+                    upload_url = page.get_upload_url(filename, 60)
+                    
+                    # Upload files into 'assets/uploads'
+                    file_picker.upload(
+                        files=[
+                            ft.FilePickerUploadFile(
+                                name=filename, 
+                                upload_url=upload_url, 
+                                method="PUT"
+                            )
+                        ]
+                    )
+                    
+                    # Upload file into Azure Cloud Storage and retrieve public URL. It will try 5 times.
+                    count = 1
+                    public_url = ''
+                    while count <= 5:
+                        try:
+                            public_url=uploadfile_azure(
+                                file_name=filename,
+                                path_file=upload_directory
+                            )
+                            sleep(1)
+                        except:
+                            sleep(1)
+                            count += 1
+
+                        if public_url==None or public_url=='':
+                            sleep(1)
+                            count += 1
+                        else:
+                            success_upload.append(
+                                {
+                                    'blob_name': public_url.get('blob_name'),
+                                    'name': file.name,
+                                    'url': public_url.get('url'),
+                                }
+                            )
+                            break
+                    
+                    if public_url==None or public_url=='':
+                        error_upload.append({'name': filename})
                 
                 upload_file_progress.content.value += 1/len(e.files)  # UPDATE PROGRESS BAR
                 upload_file_progress.update()  # UPDATE PROGRESS BAR
@@ -308,7 +315,7 @@ def main(page: ft.Page):
                     error_upload.clear()
                     page.update()
                 
-                body_error_alert = 'Error uploading these files. Please try again.\n' + '\n'.join(list(map(lambda item: f' - {item.get("name")}', error_upload)))
+                body_error_alert = f'Error uploading these files. Please try again.\n {'\n'.join(list(map(lambda item: f' - {item.get("name")}', error_upload)))} \n\nThe file types below are not allowed:\n - {', '.join(Filetype().forbbiden_extensions)}'
                 upload_error_dialog = ft.AlertDialog(
                     bgcolor=getattr(ft.colors, general_formatting.get('page_bgcolor')) if general_formatting != None else None,
                     modal=True,
@@ -340,19 +347,20 @@ def main(page: ft.Page):
                             alignment=ft.MainAxisAlignment.CENTER,
                             controls=[
                                 ft.TextButton(
-                                    col=4,
+                                    col=4.5,
                                     tooltip=item.get('name'),
                                     on_click=lambda _: page.launch_url(item.get('url')),
                                     content=ft.ResponsiveRow(
-                                        columns=4,
+                                        columns=2,
                                         alignment=ft.MainAxisAlignment.START,
+                                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
                                         controls=[
-                                            ft.Icon(col=1, name=ft.icons.FILE_COPY, color=getattr(ft.colors, general_formatting.get('page_bgcolor')) if general_formatting != None else None),
-                                            ft.Text(col=3, value=item.get('name'), overflow=ft.TextOverflow.ELLIPSIS),
+                                            ft.Icon(col=0.2, scale=0.7, name=ft.icons.FILE_COPY, color=getattr(ft.colors, general_formatting.get('page_bgcolor')) if general_formatting != None else None),
+                                            ft.Text(col=1.8, value=item.get('name'), overflow=ft.TextOverflow.ELLIPSIS),
                                         ]
                                     )
                                 ),
-                                ft.IconButton(col=1, icon=ft.icons.DELETE, icon_color=ft.colors.RED_500, on_click=delete_file, data=item.get('blob_name')),
+                                ft.IconButton(col=0.5, scale=0.7, icon=ft.icons.DELETE, icon_color=ft.colors.RED_500, on_click=delete_file, data=item.get('blob_name')),
                                 ft.Divider(height=1, visible=True if len(success_upload) > 1 else False)
                             ],
                             data=item.get('blob_name')
