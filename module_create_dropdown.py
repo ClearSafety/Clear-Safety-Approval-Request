@@ -12,6 +12,8 @@ def create_Dropdown(
         field_option_text: str=None,
         field_option_tooltip: str=None,
         dropdown_onchange: any=None,
+        mandatory: bool=False,
+        error_mandatory: bool=False
     ):
     '''
     Parameter
@@ -108,7 +110,9 @@ def create_Dropdown(
                     )
             ),
             ) for index, option in enumerate(field_option_source)
-        ] if field_option_source != None else None
+        ] if field_option_source != None else None,
+        error_text='Mandatory field' if mandatory==True and  error_mandatory==True else None,
+        error_style=ft.TextStyle(bgcolor=ft.colors.TEAL_400)
 
     )
 

@@ -177,6 +177,7 @@ def main(page: ft.Page):
             )
                 
             all_uplifts_miscellaneous.update()
+
     #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
@@ -377,10 +378,12 @@ def main(page: ft.Page):
 
     # SUBMIT FORM
     def submit_form(e):
+        # Collect all uploaded files and store them into the list 'allevidences'
         allevidences = []
         if len(success_upload) > 0:
             allevidences = list(map(lambda item: {'url': item.get('url'), 'filename': item.get('name')}, success_upload))
 
+        # Collect all Prices Breakdown and Uplifts created by the user and store them into the string 'breakdownAnduplifts'
         breakdownAnduplifts = ''
         if len(all_prices_breakdown.controls) > 1:
             for item in all_prices_breakdown.controls[:-1]:
@@ -395,7 +398,6 @@ def main(page: ft.Page):
         
         if len(all_uplifts_miscellaneous.controls) > 1:
             breakdownAnduplifts += '\nUPLIFTS\n'
-            
 
             for item in all_uplifts_miscellaneous.controls[:-1]:
                 up_code = item.controls[0].value
@@ -601,6 +603,7 @@ def main(page: ft.Page):
                             field_label='Address',
                             field_labelsize=formatting.get('field_label_size') if formatting != None else None,
                             field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+                            mandatory=True
                         ),
 
                         uprn := create_Textfield(

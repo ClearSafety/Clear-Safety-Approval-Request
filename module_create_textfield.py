@@ -16,7 +16,9 @@ def create_Textfield(
         field_maxlines: int=None,
         field_disable: bool=False,
         field_filter: str=None,
-        textfield_onchange: any=None
+        textfield_onchange: any=None,
+        mandatory: bool=False,
+        error_mandatory: bool=False
     ):
     '''
     Parameter
@@ -91,7 +93,9 @@ def create_Textfield(
         cursor_color=getattr(ft.colors, formatting.get('field_cursor_color')) if formatting != None else None,
         disabled=field_disable,
         input_filter=field_filter,
-        on_change=textfield_onchange
+        on_change=textfield_onchange,
+        error_text='Mandatory field' if mandatory==True and  error_mandatory==True else None,
+        error_style=ft.TextStyle(bgcolor=ft.colors.TEAL_400)
     )
 
     

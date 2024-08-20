@@ -26,4 +26,5 @@ class Filetype:
         return extension not in self.forbbiden_extensions
 
 if __name__ == '__main__':
-    print(', '.join(Filetype().forbbiden_extensions))
+    a = Filetype().safefiletype('xx.exe')
+    print(a)
