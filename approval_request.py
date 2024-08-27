@@ -413,6 +413,30 @@ def main(page: ft.Page):
         if breakdownAnduplifts == '\nUPLIFTS\n':
             breakdownAnduplifts = ''
 
+
+        # CHECK MANDATORY FIELDS
+        # Normal fields
+        if empty_check_mandatory(
+            page=page,
+            fields=[
+                address, 
+                uprn,
+                postcode,
+                tenure,
+                work_description
+                ]
+            ):
+            return
+        
+        #Price breakdown
+        if empty_check_mandatory(
+            page=page,
+            all_prices_breakdown=all_prices_breakdown,
+            fields=['SOR Code', 'Description', 'Qty']
+            ):
+            return
+
+
         new_record = create_Record(
             baseID='appnACNlBdniubvWe',
             tableID='tblE5yfkwLy3HyOHC',
@@ -594,10 +618,12 @@ def main(page: ft.Page):
         width=600,
         controls=[
             ft.Container(
-                padding=ft.padding.all(20),
+                padding=ft.padding.only(left=20, right=20, bottom=20),
                 content=ft.ResponsiveRow(
                     columns=3,
                     controls=[
+                        ft.Text(value='*Mandatory fields', color=ft.colors.WHITE, size=10, col=3),
+                        
                         address := create_Textfield(
                             columns_to_occupy=3, 
                             field_textsize=formatting.get('field_text_size') if formatting != None else None,
@@ -613,6 +639,7 @@ def main(page: ft.Page):
                             field_label='UPRN',
                             field_labelsize=formatting.get('field_label_size') if formatting != None else None,
                             field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+                            mandatory=True
                         ),
 
                         postcode := create_Textfield(
@@ -621,6 +648,7 @@ def main(page: ft.Page):
                             field_label='Postcode',
                             field_labelsize=formatting.get('field_label_size') if formatting != None else None,
                             field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+                            mandatory=True
                         ),
                         
                         tenure := create_Dropdown(
@@ -630,7 +658,8 @@ def main(page: ft.Page):
                             field_textsize=formatting.get('field_text_size') if formatting != None else None,
                             field_option_source=tenure_list,
                             field_option_text='Tenure Types',
-                            field_option_tooltip='Tenure Types'
+                            field_option_tooltip='Tenure Types',
+                            mandatory=True,
                         ),
 
                         work_description := create_Textfield(
@@ -640,7 +669,8 @@ def main(page: ft.Page):
                             field_labelsize=formatting.get('field_label_size') if formatting != None else None,
                             field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
                             field_multiline=True, 
-                            field_maxlines=5
+                            field_maxlines=5,
+                            mandatory=True,
                         ),
                         
                         ft.Divider(color="#2A685A"),

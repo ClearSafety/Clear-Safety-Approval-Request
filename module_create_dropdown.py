@@ -12,8 +12,7 @@ def create_Dropdown(
         field_option_text: str=None,
         field_option_tooltip: str=None,
         dropdown_onchange: any=None,
-        mandatory: bool=False,
-        error_mandatory: bool=False
+        mandatory: bool=False
     ):
     '''
     Parameter
@@ -67,9 +66,14 @@ def create_Dropdown(
         'dropdown_onclick'.
         It is needed otherwise the selected item will have a line in the field.
         '''
+
         e.control.content.border=None
         e.control.update()
     ##############################################################################################
+    
+    def error_text_delete(e):
+        e.control.error_text=None
+        e.control.update()
     
     
     return ft.Dropdown(
@@ -79,7 +83,7 @@ def create_Dropdown(
             overflow=ft.TextOverflow.FADE, 
             size=field_textsize
         ),
-        label=field_label,
+        label=field_label if mandatory==False else f'{field_label} *',
         label_style=ft.TextStyle(
             color=ft.colors.BLACK, 
             bgcolor=getattr(ft.colors, formatting.get('field_bgcolor')) if formatting != None else None,
@@ -93,7 +97,7 @@ def create_Dropdown(
         border_radius=ft.border_radius.all(10),
         alignment=ft.alignment.top_left,
         on_click=dropdown_onclick,
-        on_change=dropdown_onchange,
+        on_change=error_text_delete if dropdown_onchange==None else dropdown_onchange,
         options=[
             ft.dropdown.Option(
                 text=option.get(field_option_text),
@@ -111,7 +115,7 @@ def create_Dropdown(
             ),
             ) for index, option in enumerate(field_option_source)
         ] if field_option_source != None else None,
-        error_text='Mandatory field' if mandatory==True and  error_mandatory==True else None,
+        # error_text='Mandatory field',
         error_style=ft.TextStyle(bgcolor=ft.colors.TEAL_400)
 
     )

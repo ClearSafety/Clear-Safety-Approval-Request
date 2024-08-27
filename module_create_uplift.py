@@ -52,6 +52,10 @@ def create_UpliftGroup(
         If "SOR Code" is selected, it will fill "Description" and "Price".
         If "Description" is selected, it will fill "SOR Code" and "Price"
         '''
+        
+        _sorcode.error_text=None
+        _sordescription.error_text=None
+
         if e.control.label == 'Description':
             try:
                 _sorcode.value = list(filter(lambda item: item.get('SOR Description') == e.control.value, field_option_source))[0].get('SOR Code')
@@ -85,6 +89,8 @@ def create_UpliftGroup(
         '''
         It calculate the Total of the individual pricebreakdown group and display its value in the "Total" field.
         '''
+        _sorprice.error_text=None
+
         if _sorprice.value != '' and _soruplift.value != '':
             try:
                 _sortotal.value = f"£{float(_sorprice.value) * (1+float(_soruplift.value.replace('%', ''))/100):.2f}"
@@ -130,7 +136,8 @@ def create_UpliftGroup(
                 field_option_source=field_option_source_SORCODE,
                 field_option_text='SOR Code',
                 field_option_tooltip='SOR Description',
-                dropdown_onchange=dropdown_onchange     #This function changes the _sordescription and call the function "individual_total"
+                dropdown_onchange=dropdown_onchange,     #This function changes the _sordescription and call the function "individual_total"
+                mandatory=False,
             ),
 
             _sordescription := create_Dropdown(
@@ -141,7 +148,8 @@ def create_UpliftGroup(
                 field_option_source=field_option_source_DESCRIPTION,
                 field_option_text='SOR Description',
                 field_option_tooltip='SOR Description',
-                dropdown_onchange=dropdown_onchange     #This function changes the _sorcode and call the function "individual_total"
+                dropdown_onchange=dropdown_onchange,     #This function changes the _sorcode and call the function "individual_total"
+                mandatory=False,
             ),
 
             _sordetail := create_Textfield(
@@ -151,6 +159,7 @@ def create_UpliftGroup(
                 field_textsize=field_textsize,
                 field_multiline=True,
                 field_maxlines=5,
+                mandatory=False,
             ),
 
             _sorprice := create_Textfield(
@@ -163,6 +172,7 @@ def create_UpliftGroup(
                 field_filter='FLOAT',
                 field_keyboard='NUMBER',
                 textfield_onchange=individual_total,
+                mandatory=False,
             ),
 
             _soruplift := create_Textfield(

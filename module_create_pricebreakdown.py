@@ -52,7 +52,10 @@ def create_PriceBreakdownGroup(
         If "SOR Code" is selected, it will fill "Description" and "Price".
         If "Description" is selected, it will fill "SOR Code" and "Price"
         '''
-        if e.control.label == 'Description':
+        _sorcode.error_text=None
+        _sordescription.error_text=None
+
+        if e.control.label in 'Description *':
             try:
                 _sorcode.value = list(filter(lambda item: item.get('SOR Description') == e.control.value, field_option_source))[0].get('SOR Code')
                 for item in _sorcode.options:
@@ -60,7 +63,7 @@ def create_PriceBreakdownGroup(
             except:
                 _sorcode.value=None
 
-        elif e.control.label == 'SOR Code':
+        elif e.control.label in 'SOR Code *':
             try:
                 _sordescription.value = list(filter(lambda item: item.get('SOR Code') == e.control.value, field_option_source))[0].get('SOR Description')
                 for item in _sordescription.options:
@@ -85,6 +88,7 @@ def create_PriceBreakdownGroup(
         '''
         It calculate the Total of the individual pricebreakdown group and display its value in the "Total" field.
         '''
+        _sorqty.error_text=None
         if _sorprice.value != '' and _sorqty.value != '':
             try:
                 _sortotal.value = f"£{float(_sorprice.value.replace('£', '')) * int(_sorqty.value):.2f}"
@@ -130,7 +134,8 @@ def create_PriceBreakdownGroup(
                 field_option_source=field_option_source_SORCODE,
                 field_option_text='SOR Code',
                 field_option_tooltip='SOR Description',
-                dropdown_onchange=dropdown_onchange     #This function changes the _sordescription and call the function "individual_total"
+                dropdown_onchange=dropdown_onchange,     #This function changes the _sordescription and call the function "individual_total"
+                mandatory=True,
             ),
 
             _sordescription := create_Dropdown(
@@ -141,7 +146,8 @@ def create_PriceBreakdownGroup(
                 field_option_source=field_option_source_DESCRIPTION,
                 field_option_text='SOR Description',
                 field_option_tooltip='SOR Description',
-                dropdown_onchange=dropdown_onchange     #This function changes the _sorcode and call the function "individual_total"
+                dropdown_onchange=dropdown_onchange,     #This function changes the _sorcode and call the function "individual_total"
+                mandatory=True,
             ),
 
             _sorprice := create_Textfield(
@@ -160,7 +166,8 @@ def create_PriceBreakdownGroup(
                 field_textsize=field_textsize,
                 field_filter='INTEGER',
                 textfield_onchange=individual_total,
-                field_keyboard='NUMBER'
+                field_keyboard='NUMBER',
+                mandatory=True,
             ),
 
             _sortotal := create_Textfield(

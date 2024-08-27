@@ -18,7 +18,6 @@ def create_Textfield(
         field_filter: str=None,
         textfield_onchange: any=None,
         mandatory: bool=False,
-        error_mandatory: bool=False
     ):
     '''
     Parameter
@@ -64,7 +63,9 @@ def create_Textfield(
         else:
             field_filter=None
 
-
+    def error_text_delete(e):
+        e.control.error_text=None
+        e.control.update()
     ##############################################################################################
     
     
@@ -72,7 +73,7 @@ def create_Textfield(
         col=columns_to_occupy,
         value=field_value,
         text_style=ft.TextStyle(color=ft.colors.BLACK, overflow=ft.TextOverflow.ELLIPSIS, size=field_textsize),
-        label=field_label,
+        label=field_label if mandatory==False else f'{field_label} *',
         label_style=ft.TextStyle(
             color=ft.colors.BLACK, 
             bgcolor=getattr(ft.colors, formatting.get('field_bgcolor')) if formatting != None else None,
@@ -93,8 +94,8 @@ def create_Textfield(
         cursor_color=getattr(ft.colors, formatting.get('field_cursor_color')) if formatting != None else None,
         disabled=field_disable,
         input_filter=field_filter,
-        on_change=textfield_onchange,
-        error_text='Mandatory field' if mandatory==True and  error_mandatory==True else None,
+        on_change=error_text_delete if textfield_onchange==None else textfield_onchange,
+        #error_text='Mandatory field',
         error_style=ft.TextStyle(bgcolor=ft.colors.TEAL_400)
     )
 
