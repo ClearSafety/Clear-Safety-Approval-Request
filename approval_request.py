@@ -316,7 +316,8 @@ def main(page: ft.Page):
                     error_upload.clear()
                     page.update()
                 
-                body_error_alert = 'Error'#f'Error uploading these files. Please try again.\n {'\n'.join(list(map(lambda item: f' - {item.get("name")}', error_upload)))} \n\nThe file types below are not allowed:\n - {', '.join(Filetype().forbbiden_extensions)}'
+                list_upload_errors = '\n'.join(list(map(lambda item: f' - {item.get("name")}', error_upload)))
+                body_error_alert = f'Error uploading these files. Please try again.\n {list_upload_errors} \n\nThe file types below are not allowed:\n - {", ".join(Filetype().forbbiden_extensions)}'
                 upload_error_dialog = ft.AlertDialog(
                     bgcolor=getattr(ft.colors, general_formatting.get('page_bgcolor')) if general_formatting != None else None,
                     modal=True,
