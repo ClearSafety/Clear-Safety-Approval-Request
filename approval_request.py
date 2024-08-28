@@ -9,33 +9,9 @@ from module_create_dropdown import create_Dropdown
 from module_create_textfield import create_Textfield
 from module_create_pricebreakdown import create_PriceBreakdownGroup
 from module_create_uplift import create_UpliftGroup
+from module_fields_options import *
 
 os.getenv('FLET_SECRET_KEY')
-
-
-###############################################################################################################################################################################################
-# DATA FROM AIRTABLE
-###############################################################################################################################################################################################
-# # TENURE LIST
-# try:
-#     tenure_list = get_Records('appB0phO3KnX4WexS', 'tblycaJHzyRku5gYp')
-# except:
-#     tenure_list = []
-# #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-# SOR CODE LIST
-try:
-    sor_code_list = get_Records('appB0phO3KnX4WexS', 'tblFUxOPoerfAg9vN', ['SOR Code', 'SOR Description', 'SOR Cost (BSW)', 'Uplift BSW', 'Uplift'])
-    sor_code_list_price = list(filter(lambda item: item.get('Uplift') == 'No' and item.get('SOR Cost (BSW)') != 0, sor_code_list))
-    sor_code_list_uplift = list(filter(lambda item: item.get('Uplift') == 'Yes' and item.get('Uplift BSW') != 0, sor_code_list))
-
-except:
-    sor_code_list = []
-    sor_code_list_price = []
-    sor_code_list_uplift = []  
-#----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-###############################################################################################################################################################################################
 
 
 
@@ -73,12 +49,47 @@ def main(page: ft.Page):
     page.padding=ft.padding.all(0)
     
 
-    # TENURE LIST
-    try:
-        tenure_list = get_Records('appB0phO3KnX4WexS', 'tblycaJHzyRku5gYp')
-    except:
-        tenure_list = []
+    ###############################################################################################################################################################################################
+    # DATA FROM AIRTABLE
+    ###############################################################################################################################################################################################
+    # ALL FIELDS OPTIONS
+    field_Options = Field_Options(
+        baseID='appB0phO3KnX4WexS', 
+        tableID='tblycaJHzyRku5gYp',
+        fields=[
+            'Gas/Electrical ETC',
+            'Request Type',
+            'Is this on the Planned list?',
+            'Request Category',
+            'Tenure',
+            'Service Level',
+            'Does The Property Have Functioning Heating?',
+            'Does The Property Have Functioning Hot Water?',
+            'Has The Property Been Left With Temporary Heating?',
+            'Condensing or Non-Condensing',
+            'Types Of External Controls On Site',
+            'Is There A Need For Additional Flueing?',
+            'Is There Any Requirement To Update The Gas Supply?',
+            'Is There Any Requirement To Update The Condese?'
+        ]
+    )
     #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+    # SOR CODE LIST
+    try:
+        sor_code_list = get_Records('appB0phO3KnX4WexS', 'tblFUxOPoerfAg9vN', ['SOR Code', 'SOR Description', 'SOR Cost (BSW)', 'Uplift BSW', 'Uplift'])
+        sor_code_list_price = list(filter(lambda item: item.get('Uplift') == 'No' and item.get('SOR Cost (BSW)') != 0, sor_code_list))
+        sor_code_list_uplift = list(filter(lambda item: item.get('Uplift') == 'Yes' and item.get('Uplift BSW') != 0, sor_code_list))
+
+    except:
+        sor_code_list = []
+        sor_code_list_price = []
+        sor_code_list_uplift = []  
+    #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ###############################################################################################################################################################################################
+
+
 
     ###########################################################################################################################################################################################
     # GLOBAL VARIABLES
@@ -121,7 +132,7 @@ def main(page: ft.Page):
         
     )
     
-    if len(tenure_list) == 0 and len(sor_code_list) == 0:
+    if len(field_Options.records) == 0 and len(sor_code_list) == 0:
         page.overlay.append(dialog_error_connection)
         dialog_error_connection.open=True
         page.update()
@@ -661,9 +672,9 @@ def main(page: ft.Page):
                             field_label='Tenure', 
                             field_labelsize=formatting.get('field_label_size') if formatting != None else None,
                             field_textsize=formatting.get('field_text_size') if formatting != None else None,
-                            field_option_source=tenure_list,
-                            field_option_text='Tenure Types',
-                            field_option_tooltip='Tenure Types',
+                            field_option_source=field_Options.get_options('Tenure'),
+                            field_option_text='Tenure',
+                            field_option_tooltip='Tenure',
                             mandatory=True,
                         ),
 
