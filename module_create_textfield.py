@@ -18,6 +18,7 @@ def create_Textfield(
         field_filter: str=None,
         textfield_onchange: any=None,
         mandatory: bool=False,
+        field_visible: bool=True
     ):
     '''
     Parameter
@@ -96,7 +97,8 @@ def create_Textfield(
         input_filter=field_filter,
         on_change=error_text_delete if textfield_onchange==None else textfield_onchange,
         #error_text='Mandatory field',
-        error_style=ft.TextStyle(bgcolor=ft.colors.TEAL_400)
+        error_style=ft.TextStyle(bgcolor=ft.colors.TEAL_400),
+        visible=field_visible
     )
 
     

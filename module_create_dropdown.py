@@ -12,7 +12,8 @@ def create_Dropdown(
         field_option_text: str=None,
         field_option_tooltip: str=None,
         dropdown_onchange: any=None,
-        mandatory: bool=False
+        mandatory: bool=False,
+        condition: dict=None
     ):
     '''
     Parameter
@@ -24,6 +25,7 @@ def create_Dropdown(
         - field_option_text: str=None - Column name in the 'field_option_source' with the option name,
         - field_option_tooltip: str=None - Column name in the 'field_option_source' with the tooltip to be display in each option,
         - dropdown_onchange: any=None - Function to be triggered when the Dropdown value is changed, as result of option selection
+        - condition: dict=None - If the condition is satisfied, another field will be displayed. Template {'equal_to': 'option', 'afected_field': 'variable_for_the_field'}
     
     '''
     
@@ -71,9 +73,19 @@ def create_Dropdown(
         e.control.update()
     ##############################################################################################
     
-    def error_text_delete(e):
+    def internal_onchange(e):
         e.control.error_text=None
         e.control.update()
+
+        if condition != None:
+            if e.control.value==condition.get('equal_to'):
+                condition.get('afected_field').visible=True
+                condition.get('afected_field').update()
+            
+            elif e.control.value!=condition.get('equal_to'):
+                condition.get('afected_field').visible=False
+                condition.get('afected_field').update()
+
     
     
     return ft.Dropdown(
@@ -97,7 +109,7 @@ def create_Dropdown(
         border_radius=ft.border_radius.all(10),
         alignment=ft.alignment.top_left,
         on_click=dropdown_onclick,
-        on_change=error_text_delete if dropdown_onchange==None else dropdown_onchange,
+        on_change=internal_onchange if dropdown_onchange==None else dropdown_onchange,
         options=[
             ft.dropdown.Option(
                 text=option.get(field_option_text),

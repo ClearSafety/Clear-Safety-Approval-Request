@@ -436,7 +436,7 @@ def main(page: ft.Page):
             ):
             return
 
-
+        # Create the record
         new_record = create_Record(
             baseID='appnACNlBdniubvWe',
             tableID='tblE5yfkwLy3HyOHC',
@@ -565,7 +565,7 @@ def main(page: ft.Page):
             dialog_submission_error.open=True
             page.update()
 
-    
+
 
 
     #############################################################################
