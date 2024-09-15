@@ -28,17 +28,23 @@ class Filetype:
 
 
 # Function to check mandatory response
-def empty_check_mandatory(page, fields, all_prices_breakdown=None):
+def empty_check_mandatory(page, fields, all_prices_breakdown=None, listcheckbox=None):
     
     fields_with_problem = ''
     
-    if all_prices_breakdown==None:
+    if all_prices_breakdown==None and listcheckbox==None:
         for field in fields:
-        
-            if field.label[-1] == '*' and (field.value == '' or field.value == None):
+            if field.label[-1] == '*' and (field.value == '' or field.value == None) and field.visible==True:
                 field.error_text='Mandatory field'
                 field.update()
                 fields_with_problem += (f'- {field.label[:-2]}\n')
+    
+    elif listcheckbox!=None:
+        for field in fields:
+            if field.controls[1].value[-1] == '*' and (len(field.data) == 0) and field.visible==True:
+                field.controls[1].color='RED'
+                field.update()
+                fields_with_problem += (f'- {field.controls[1].value[:-2]}\n')
     
     elif all_prices_breakdown!=None:
         if len(all_prices_breakdown.controls) == 1:
@@ -57,8 +63,6 @@ def empty_check_mandatory(page, fields, all_prices_breakdown=None):
                         pass
 
 
-
-    print(fields_with_problem)
 
     if fields_with_problem != '':
         def close_dialog(e):

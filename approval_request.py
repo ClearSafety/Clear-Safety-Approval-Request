@@ -9,12 +9,16 @@ from module_create_dropdown import create_Dropdown
 from module_create_textfield import create_Textfield
 from module_create_pricebreakdown import create_PriceBreakdownGroup
 from module_create_uplift import create_UpliftGroup
+from module_create_date import create_Date
+from module_create_checkbox import create_Checkbox
+from module_create_listcheckbox import create_ListCheckbox
+from module_create_filepicker import create_Filepicker
 from module_fields_options import *
 
 os.getenv('FLET_SECRET_KEY')
 
 
-
+contractor = 'BSW'
 
 ###############################################################################################################################################################################################
 # ACCESS FORMATTING BASE ON THE TYPE OF USER DEVICE: MOBILE OR COMPUTER
@@ -52,7 +56,7 @@ def main(page: ft.Page):
     ###############################################################################################################################################################################################
     # DATA FROM AIRTABLE
     ###############################################################################################################################################################################################
-    # ALL FIELDS OPTIONS
+    # ALL FIELDS OPTIONS TO BE USED IN DROPDOWN FIELD
     field_Options = Field_Options(
         baseID='appB0phO3KnX4WexS', 
         tableID='tblycaJHzyRku5gYp',
@@ -76,11 +80,11 @@ def main(page: ft.Page):
     #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-    # SOR CODE LIST
+    # SOR CODE LIST TO BE USED IN PRICEBREAKDOWN AND UPLIFT DROPDOWN FIELD
     try:
-        sor_code_list = get_Records('appB0phO3KnX4WexS', 'tblFUxOPoerfAg9vN', ['SOR Code', 'SOR Description', 'SOR Cost (BSW)', 'Uplift BSW', 'Uplift'])
-        sor_code_list_price = list(filter(lambda item: item.get('Uplift') == 'No' and item.get('SOR Cost (BSW)') != 0, sor_code_list))
-        sor_code_list_uplift = list(filter(lambda item: item.get('Uplift') == 'Yes' and item.get('Uplift BSW') != 0, sor_code_list))
+        sor_code_list = get_Records('appB0phO3KnX4WexS', 'tblFUxOPoerfAg9vN', ['SOR Code', 'SOR Description', f'SOR Cost ({contractor})', f'Uplift {contractor}', 'Uplift'])
+        sor_code_list_price = list(filter(lambda item: item.get('Uplift') == 'No' and item.get(f'SOR Cost ({contractor})') != 0, sor_code_list))
+        sor_code_list_uplift = list(filter(lambda item: item.get('Uplift') == 'Yes' and item.get(f'Uplift {contractor}') != 0, sor_code_list))
 
     except:
         sor_code_list = []
@@ -95,17 +99,7 @@ def main(page: ft.Page):
     # GLOBAL VARIABLES
     ###########################################################################################################################################################################################
     # List to store all the files uploaded into the form
-    success_upload = []
-    error_upload = []
     upload_directory = "assets/uploads"
-    upload_file_progress=ft.AlertDialog(
-                title=ft.Text('Uploading files...'),
-                content=ft.ProgressBar(
-                width=200,
-                height=30,
-                value=0
-                )
-            )
     ###########################################################################################################################################################################################
     
 
@@ -141,7 +135,7 @@ def main(page: ft.Page):
 
     # CHECK TYPE OF DEVICE USING BY THE USER AND DEFINE FORMATTING
     if formatting_file != None:
-        if 'mobile' in page.client_user_agent.lower() or 'table' in page.client_user_agent.lower():
+        if 'mobile' in page.client_user_agent.lower() or 'table' in page.client_user_agent.lower() or 'android' in page.client_user_agent.lower():
             formatting = formatting_file.get('mobile')
         else:
             formatting = formatting_file.get('computer')
@@ -243,162 +237,14 @@ def main(page: ft.Page):
     #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
-    # Function to delete the uploaded file
-    def delete_file(e):
-        blob_name = e.control.data
-        #Deleting from Card where the upload files are shown
-        card_list_files.content.controls = list(filter(lambda item: item.data != blob_name, card_list_files.content.controls))
-        card_list_files.update()
-
-        #Delete from the list where there are all updated files data that is used to create record in Airtable
-        for idx, item in enumerate(success_upload):
-            if item.get('blob_name') == blob_name:
-                success_upload.pop(idx)
-        
-        #Deleting from Azure
-        try:
-            deletefile_azure(blob_name=blob_name)
-        except:
-            ...
-    #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     
-
-    # FUNCTION TO CREATE A BOX DIALOG TO UPDATE FILES INTO THE FORM, UPLOAD INTO AZURE CLOUD AND RETRIEVE PUBLIC_URL
-    def on_files_selected(e):
-        if e.files:
-            # Open progress bar
-            page.open(upload_file_progress) 
-            
-            # Iterate over all files selected by the user
-            for file in e.files:
-                
-                filename = file.name
-                
-                # Check the the selected file has suspicious extension, like '.dll', '.exe' etc
-                
-                if not Filetype().safefiletype(filename):
-                    error_upload.append({'name': filename})
-                else:
-                    upload_url = page.get_upload_url(filename, 60)
-                    
-                    # Upload files into 'assets/uploads'
-                    file_picker.upload(
-                        files=[
-                            ft.FilePickerUploadFile(
-                                name=filename, 
-                                upload_url=upload_url, 
-                                method="PUT"
-                            )
-                        ]
-                    )
-                    
-                    # Upload file into Azure Cloud Storage and retrieve public URL. It will try 5 times.
-                    count = 1
-                    public_url = ''
-                    while count <= 5:
-                        try:
-                            public_url=uploadfile_azure(
-                                file_name=filename,
-                                path_file=upload_directory
-                            )
-                            sleep(1)
-                        except:
-                            sleep(1)
-                            count += 1
-
-                        if public_url==None or public_url=='':
-                            sleep(1)
-                            count += 1
-                        else:
-                            success_upload.append(
-                                {
-                                    'blob_name': public_url.get('blob_name'),
-                                    'name': file.name,
-                                    'url': public_url.get('url'),
-                                }
-                            )
-                            break
-                    
-                    if public_url==None or public_url=='':
-                        error_upload.append({'name': filename})
-                
-                upload_file_progress.content.value += 1/len(e.files)  # UPDATE PROGRESS BAR
-                upload_file_progress.update()  # UPDATE PROGRESS BAR
-            
-            # If error happens with the upload file process, a dialog window will be displayed with the file name
-            if len(error_upload) > 0:
-                def close_dialog(e):
-                    upload_error_dialog.open=False
-                    error_upload.clear()
-                    page.update()
-                
-                list_upload_errors = '\n'.join(list(map(lambda item: f' - {item.get("name")}', error_upload)))
-                body_error_alert = f'Error uploading these files. Please try again.\n {list_upload_errors} \n\nThe file types below are not allowed:\n - {", ".join(Filetype().forbbiden_extensions)}'
-                upload_error_dialog = ft.AlertDialog(
-                    bgcolor=getattr(ft.colors, general_formatting.get('page_bgcolor')) if general_formatting != None else None,
-                    modal=True,
-                    title=ft.Text(value='Clear Safety - Error', size=20, weight=ft.FontWeight.BOLD, color=ft.colors.GREY_300),
-                    content=ft.Text(value=body_error_alert, color=ft.colors.GREY_300),
-                    actions=[
-                        ft.ElevatedButton(
-                            text='     OK     ',
-                            on_click=close_dialog, 
-                            bgcolor=getattr(ft.colors, general_formatting.get('page_bgcolor')) if general_formatting != None else None, 
-                            color=ft.colors.GREY_300, 
-                            elevation=5)
-                    ],
-                    actions_alignment=ft.MainAxisAlignment.CENTER,
-                )
-                page.overlay.append(upload_error_dialog)
-                upload_error_dialog.open=True
-                page.update()
-            
-            # If the upload is successful, it will be added to a Card to be displayed to the user
-            if len(success_upload) > 0:
-                card_list_files.content.controls.clear()
-                for item in success_upload:
-                    card_list_files.content.controls.append(ft.ResponsiveRow(
-                            columns=5,
-                            spacing=0,
-                            run_spacing=0,
-                            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                            alignment=ft.MainAxisAlignment.CENTER,
-                            controls=[
-                                ft.TextButton(
-                                    col=4.5,
-                                    tooltip=item.get('name'),
-                                    on_click=lambda _: page.launch_url(item.get('url')),
-                                    content=ft.ResponsiveRow(
-                                        columns=2,
-                                        alignment=ft.MainAxisAlignment.START,
-                                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                                        controls=[
-                                            ft.Icon(col=0.2, scale=0.7, name=ft.icons.FILE_COPY, color=getattr(ft.colors, general_formatting.get('page_bgcolor')) if general_formatting != None else None),
-                                            ft.Text(col=1.8, value=item.get('name'), overflow=ft.TextOverflow.ELLIPSIS),
-                                        ]
-                                    )
-                                ),
-                                ft.IconButton(col=0.5, scale=0.7, icon=ft.icons.DELETE, icon_color=ft.colors.RED_500, on_click=delete_file, data=item.get('blob_name')),
-                                ft.Divider(height=1, visible=True if len(success_upload) > 1 else False)
-                            ],
-                            data=item.get('blob_name')
-                        )
-                    )
-                card_list_files.update()
-            
-            # Close the progress bar when the upload processo is concluded
-            page.close(upload_file_progress)  # CLOSE PROGRESS BAR
-            upload_file_progress.content.value=0 # RESET PROGRESS BAR
-        
-    file_picker = ft.FilePicker(on_result=on_files_selected)
-
-
+    
     # SUBMIT FORM
     def submit_form(e):
         # Collect all uploaded files and store them into the list 'allevidences'
         allevidences = []
-        if len(success_upload) > 0:
-            allevidences = list(map(lambda item: {'url': item.get('url'), 'filename': item.get('name')}, success_upload))
+        if len(evidences.data) > 0:
+            allevidences = list(map(lambda item: {'url': item.get('url'), 'filename': item.get('name')}, evidences.data))
 
         # Collect all Prices Breakdown and Uplifts created by the user and store them into the string 'breakdownAnduplifts'
         breakdownAnduplifts = ''
@@ -435,15 +281,24 @@ def main(page: ft.Page):
         if empty_check_mandatory(
             page=page,
             fields=[
-                address, 
-                uprn,
-                postcode,
-                tenure,
-                work_description
+                contractor_name,
+                address, uprn, postcode, work_description, property_type, property_level, meter_location, appliance_type, appliance_make, appliance_model, reason_no_serial_number, reason_no_gc_number, serial_number, gc_number, age_appliance, appliance_failures, engineers_comments, fault_history, current_location, number_radiators, water_flow_rate, reason_no_evidence, make_new_appliance, model_new_appliance, location_new_appliance, time_to_complete, email,
+                planned_list, request_type, request_category, gas_elec_etc, tenure, service_level, functioning_heating, functioning_hot_water, temporary_heating, condensing_noncondensing, additional_flueing, update_gas_supply, update_condese,
+                date_reported.controls[0], date_to_complete.controls[0],
                 ]
             ):
             return
-        
+
+        # ListCheckbox fields
+        if empty_check_mandatory(
+            page=page,
+            listcheckbox=True,
+            fields=[
+                types_of_control
+                ]
+            ):
+            return
+
         #Price breakdown
         if empty_check_mandatory(
             page=page,
@@ -452,19 +307,66 @@ def main(page: ft.Page):
             ):
             return
 
+
         # Create the record
         new_record = create_Record(
-            baseID='appnACNlBdniubvWe',
-            tableID='tblE5yfkwLy3HyOHC',
+            baseID='appkaWXXjd1UyTbUk',
+            tableID='tblqO3PiLIuy6yRwZ',
             content={
+                'Contractor': contractor_name.value if contractor_name.value != '' else None,
                 'Address': address.value,
                 'UPRN': uprn.value,
-                'Postcode': postcode.value,
-                'Tenure': tenure.value,
-                'Description of work': work_description.value,
-                'Price breakdown': breakdownAnduplifts,
-                'Total': float(_gran_total_value.value.replace('£', '')) if _gran_total_value.value != '' else None,
-                'Evidences': allevidences
+                'Post Code': postcode.value,
+                'Description Of Works Required': work_description.value,
+                'Property Type': property_type.value,
+                'Property Level': property_level.value,
+                'Meter Location': meter_location.value,
+                'Type Of Appliance': appliance_type.value,
+                'Current Appliance Make': appliance_make.value,
+                'Current Appliance Model': appliance_model.value,
+                'Reason For No Serial Number': reason_no_serial_number.value,
+                'Reason For No GC Number': reason_no_gc_number.value,
+                'Serial Number': serial_number.value,
+                'GC Number': gc_number.value,
+                'Estimated Age Of Appliance': age_appliance.value,
+                'Description Of Appliance Failures': appliance_failures.value,
+                'Engineers Comments/Recommendations': engineers_comments.value,
+                'Appliance Fault History & Previous Attendance': fault_history.value,
+                'Current Location': current_location.value,
+                'No. Of Radiators': number_radiators.value,
+                'Flow Rate': water_flow_rate.value,
+                'Reason For Lack Of Attached Evidence': reason_no_evidence.value,
+                'Make Of New Appliance': make_new_appliance.value,
+                'Model Of New Appliance': model_new_appliance.value,
+                'New Appliance Location': location_new_appliance.value,
+                'Estimated Time To Complete Works': time_to_complete.value,
+                'Email To Communicate With': email.value,
+                
+                'Is this on the Planned list?': planned_list.value if planned_list.value != '' else None,
+                'Request Type': request_type.value if request_type.value != '' else None,
+                'Request Category': request_category.value if request_category.value != '' else None,
+                'Gas/Electrical ETC': gas_elec_etc.value if gas_elec_etc.value != '' else None,
+                'Tenure': tenure.value if tenure.value != '' else None,
+                'Service Level': service_level.value if service_level.value != '' else None,
+                'Does The Property Have Functioning Heating?': functioning_heating.value if functioning_heating.value != '' else None,
+                'Does The Property Have Functioning Hot Water?': functioning_hot_water.value if functioning_hot_water.value != '' else None,
+                'Has The Property Been Left With Temporary Heating?': temporary_heating.value if temporary_heating.value != '' else None,
+                'Condensing or Non-Condensing': condensing_noncondensing.value if condensing_noncondensing.value != '' else None,
+                'Is There A Need For Additional Flueing?': additional_flueing.value if additional_flueing.value != '' else None,
+                'Is There Any Requirement To Update The Gas Supply?': update_gas_supply.value if update_gas_supply.value != '' else None,
+                'Is There Any Requirement To Update The Condese?': update_condese.value if update_condese.value != '' else None,
+
+                'Private Landlord?': private_landlord.content.value,
+                'Void Property?': void_property.content.value,
+
+                'Date Reported': date_reported.controls[0].data,
+                'Date of Works to be carried out': date_to_complete.controls[0].data,
+                
+                'Types Of External Controls On Site': types_of_control.data,
+                
+                'Work Quotation Cost Breakdown With SOR Codes': breakdownAnduplifts,
+                'Total Cost': float(_gran_total_value.value.replace('£', '')) if _gran_total_value.value != '' else None,
+                'Pre-works Evidence (Inc Photos)': allevidences
             }
         )
 
@@ -475,7 +377,7 @@ def main(page: ft.Page):
 
                     # Delete all files from Azure Cloud Service
                     try:
-                        for item in success_upload:
+                        for item in evidences.data:
                             deletefile_azure(item.get('blob_name'))
                     except:
                         ...
@@ -484,11 +386,58 @@ def main(page: ft.Page):
                         page.controls.clear()
                         page.add(ft.Image(src='/images/cs_logo.png', scale=0.5))
                     else:
-                        address.value=''
-                        uprn.value=''
-                        postcode.value=''
+                        contractor_name.value=None
+                        address.value=None
+                        uprn.value=None
+                        postcode.value=None
+                        work_description.value=None
+                        property_type.value=None
+                        property_level.value=None
+                        meter_location.value=None
+                        appliance_type.value=None
+                        appliance_make.value=None
+                        appliance_model.value=None
+                        reason_no_serial_number.value=None
+                        reason_no_gc_number.value=None
+                        serial_number.value=None
+                        gc_number.value=None
+                        age_appliance.value=None
+                        appliance_failures.value=None
+                        engineers_comments.value=None
+                        fault_history.value=None
+                        current_location.value=None
+                        number_radiators.value=None
+                        water_flow_rate.value=None
+                        reason_no_evidence.value=None
+                        make_new_appliance.value=None
+                        model_new_appliance.value=None
+                        location_new_appliance.value=None
+                        time_to_complete.value=None
+                        email.value=None
+                        planned_list.value=None
+                        request_type.value=None
+                        request_category.value=None
+                        gas_elec_etc.value=None
                         tenure.value=None
-                        work_description.value=''
+                        service_level.value=None
+                        functioning_heating.value=None
+                        functioning_hot_water.value=None
+                        temporary_heating.value=None
+                        condensing_noncondensing.value=None
+                        additional_flueing.value=None
+                        update_gas_supply.value=None
+                        update_condese.value=None
+                        private_landlord.content.value=False
+                        void_property.content.value=False
+                        date_reported.controls[0].data=None
+                        date_to_complete.controls[0].data=None
+                        date_reported.controls[0].value=None
+                        date_to_complete.controls[0].value=None
+                        for item in types_of_control.controls[0].content.controls:
+                            item.value=False
+                        
+                        
+                        
                         all_prices_breakdown.controls=[
                             create_PriceBreakdownGroup(
                                 page=page,
@@ -546,8 +495,9 @@ def main(page: ft.Page):
                             ),
                         ]
                         _gran_total_value.value=''
-                        card_list_files.content.controls.clear()
-                    page.update()
+                        
+                        #card_list_files.content.controls.clear()
+                        page.update()
 
             dialog_submission_success = ft.AlertDialog(
                 title=ft.Text(value='Clear Safety - Approval Request'),
@@ -580,6 +530,21 @@ def main(page: ft.Page):
             page.overlay.append(dialog_submission_error)
             dialog_submission_error.open=True
             page.update()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -627,7 +592,570 @@ def main(page: ft.Page):
     )
     #----------------------------------------------------------------------------
     
-    # FIELDS: body of the form, where all fields are created
+    
+    # FIELDS
+    contractor_name = create_Textfield(
+        columns_to_occupy=0.7, 
+        field_value=contractor,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_label='Contractor',
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+        field_disable=True
+    )
+
+    planned_list = create_Dropdown(
+        columns_to_occupy=3,
+        field_label='Is this on the Planned list?', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Is this on the Planned list?'),
+        field_option_text='Is this on the Planned list?',
+        field_option_tooltip='Is this on the Planned list?',
+        mandatory=True,
+        field_visible=False,
+    )
+
+    request_type = create_Dropdown(
+        columns_to_occupy=1.5,
+        field_label='Request Type', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Request Type'),
+        field_option_text='Request Type',
+        field_option_tooltip='Request Type',
+        mandatory=True,
+        condition={'equal_to': 'Reactive - Appliance Renewal', 'afected_field': [planned_list]}
+    )
+
+    request_category = create_Dropdown(
+        columns_to_occupy=1.5,
+        field_label='Request Category', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Request Category'),
+        field_option_text='Request Category',
+        field_option_tooltip='Request Category',
+        mandatory=True
+    )
+
+    date_reported = create_Date(
+        page=page,
+        columns_to_occupy=1.2,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_label='Date Reported',
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+        mandatory=True
+    )
+
+    gas_elec_etc = create_Dropdown(
+        columns_to_occupy=1.1,
+        field_label='Gas/Electrical ETC', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Gas/Electrical ETC'),
+        field_option_text='Gas/Electrical ETC',
+        field_option_tooltip='Gas/Electrical ETC',
+        mandatory=True,
+    )
+    
+    address = create_Textfield(
+        columns_to_occupy=3, 
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_label='Address',
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+        mandatory=True
+    )
+
+    uprn = create_Textfield(
+        columns_to_occupy=1, 
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_label='UPRN',
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+        mandatory=True
+    )
+
+    postcode = create_Textfield(
+        columns_to_occupy=1,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_label='Postcode',
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+        mandatory=True
+    )
+
+    work_description = create_Textfield(
+        columns_to_occupy=3, 
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_label='Description Of Works Required', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+        field_multiline=True, 
+        field_maxlines=5,
+        mandatory=True,
+    )
+    
+    tenure = create_Dropdown(
+        columns_to_occupy=1,
+        field_label='Tenure', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Tenure'),
+        field_option_text='Tenure',
+        field_option_tooltip='Tenure',
+        mandatory=True,
+    )
+    
+    property_type = create_Textfield(
+        columns_to_occupy=1.5,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_label='Property Type',
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+        mandatory=True
+    )
+
+    property_level = create_Textfield(
+        columns_to_occupy=1.5,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_label='Property Level',
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+        mandatory=True
+    )
+
+    private_landlord = create_Checkbox(
+        columns_to_occupy=1,
+        field_label='Private Landlord?',
+        mandatory=False,
+    )
+
+    void_property = create_Checkbox(
+        columns_to_occupy=1,
+        field_label='Void Property?',
+        mandatory=False,
+    )
+
+    service_level = create_Dropdown(
+        columns_to_occupy=1,
+        field_label='Service Level', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Service Level'),
+        field_option_text='Service Level',
+        field_option_tooltip='Service Level',
+        mandatory=True,
+    )
+
+    functioning_heating = create_Dropdown(
+        columns_to_occupy=3,
+        field_label='Does The Property Have Functioning Heating?', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Does The Property Have Functioning Heating?'),
+        field_option_text='Does The Property Have Functioning Heating?',
+        field_option_tooltip='Does The Property Have Functioning Heating?',
+        mandatory=True,
+    )
+
+    functioning_hot_water = create_Dropdown(
+        columns_to_occupy=3,
+        field_label='Does The Property Have Functioning Hot Water?', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Does The Property Have Functioning Hot Water?'),
+        field_option_text='Does The Property Have Functioning Hot Water?',
+        field_option_tooltip='Does The Property Have Functioning Hot Water?',
+        mandatory=True,
+    ) 
+
+    temporary_heating = create_Dropdown(
+        columns_to_occupy=3,
+        field_label='Has The Property Been Left With Temporary Heating?', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Has The Property Been Left With Temporary Heating?'),
+        field_option_text='Has The Property Been Left With Temporary Heating?',
+        field_option_tooltip='Has The Property Been Left With Temporary Heating?',
+        mandatory=True,
+    ) 
+
+    meter_location = create_Textfield(
+        columns_to_occupy=1.5,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_label='Meter Location',
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+        mandatory=True
+    )
+
+    appliance_type = create_Textfield(
+    columns_to_occupy=1.5,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='Type of Appliance',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=True
+    )
+
+    appliance_make = create_Textfield(
+    columns_to_occupy=1.5,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='Current Appliance Make',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=True
+    )
+
+    appliance_model = create_Textfield(
+    columns_to_occupy=1.5,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='Current Appliance Model',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=True
+    )
+
+    condensing_noncondensing = create_Dropdown(
+        columns_to_occupy=3,
+        field_label='Condensing or Non-Condensing', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Condensing or Non-Condensing'),
+        field_option_text='Condensing or Non-Condensing',
+        field_option_tooltip='Condensing or Non-Condensing',
+        mandatory=True,
+    ) 
+
+    reason_no_serial_number = create_Textfield(
+    columns_to_occupy=3,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='Reason For No Serial Number',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=True,
+    field_multiline=True,
+    field_maxlines=3,
+    )
+
+    reason_no_gc_number = create_Textfield(
+    columns_to_occupy=3,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='Reason For No GC Number',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=True,
+    field_multiline=True,
+    field_maxlines=3,
+    )
+    
+    serial_number = create_Textfield(
+    columns_to_occupy=1,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='Serial Number',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=False,
+    condition={'equal_to': '', 'afected_field': [reason_no_serial_number]}
+    )
+
+    gc_number = create_Textfield(
+    columns_to_occupy=1,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='GC Number',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=False,
+    condition={'equal_to': '', 'afected_field': [reason_no_gc_number]}
+    )
+
+    age_appliance = create_Textfield(
+    columns_to_occupy=1,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='Estimated Age of Appliance',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=True,
+    )
+
+    appliance_failures = create_Textfield(
+    columns_to_occupy=3,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='Description of Appliance Failures',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=True,
+    field_multiline=True,
+    field_maxlines=3,
+    )
+
+    engineers_comments = create_Textfield(
+    columns_to_occupy=3,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='Engineers Comments/Recommendations',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=True,
+    field_multiline=True,
+    field_maxlines=3,
+    )
+
+    fault_history = create_Textfield(
+    columns_to_occupy=3,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='Appliance Fault History & Previous Attendance',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=True,
+    field_multiline=True,
+    field_maxlines=3,
+    )
+
+    current_location = create_Textfield(
+    columns_to_occupy=3,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='Current Location',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=True,
+    )
+
+    number_radiators = create_Textfield(
+    columns_to_occupy=1.5,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='No. Of Radiators',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=True,
+    )
+
+    water_flow_rate = create_Textfield(
+    columns_to_occupy=1.5,
+    field_textsize=formatting.get('field_text_size') if formatting != None else None,
+    field_label='Mains Water Flow Rate',
+    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+    mandatory=False,
+    )
+
+    types_of_control = create_ListCheckbox(
+        columns_to_occupy=3,
+        field_label='Types Of External Controls On Site',
+        field_option_source=field_Options.get_options('Types Of External Controls On Site'),
+        field_option_text='Types Of External Controls On Site',
+        field_option_tooltip='Types Of External Controls On Site',
+        mandatory=True,
+    )
+
+    reason_no_evidence = create_Textfield(
+        columns_to_occupy=3,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_label='Reason For Lack Of Attached Evidence',
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+        mandatory=True,
+        field_multiline=True,
+        field_maxlines=3,
+        )
+    
+    evidences = create_Filepicker(
+        page=page,
+        columns_to_occupy=3,
+        upload_directory=upload_directory,
+        condition={'equal_to': '', 'afected_field': [reason_no_evidence]}
+    )
+
+    additional_flueing = create_Dropdown(
+        columns_to_occupy=3,
+        field_label='Is There A Need For Additional Flueing?', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Is There A Need For Additional Flueing?'),
+        field_option_text='Is There A Need For Additional Flueing?',
+        field_option_tooltip='Is There A Need For Additional Flueing?',
+        mandatory=True,
+    )
+
+    update_gas_supply = create_Dropdown(
+        columns_to_occupy=3,
+        field_label='Is There Any Requirement To Update The Gas Supply?', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Is There Any Requirement To Update The Gas Supply?'),
+        field_option_text='Is There Any Requirement To Update The Gas Supply?',
+        field_option_tooltip='Is There Any Requirement To Update The Gas Supply?',
+        mandatory=True,
+    )
+
+    update_condese = create_Dropdown(
+        columns_to_occupy=3,
+        field_label='Is There Any Requirement To Update The Condese?', 
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_option_source=field_Options.get_options('Is There Any Requirement To Update The Condese?'),
+        field_option_text='Is There Any Requirement To Update The Condese?',
+        field_option_tooltip='Is There Any Requirement To Update The Condese?',
+        mandatory=True,
+    )
+
+    make_new_appliance = create_Textfield(
+            columns_to_occupy=1,
+            field_textsize=formatting.get('field_text_size') if formatting != None else None,
+            field_label='Make Of New Appliance',
+            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+            mandatory=True,
+            field_multiline=True,
+            field_maxlines=3,
+            )
+
+    model_new_appliance = create_Textfield(
+            columns_to_occupy=1,
+            field_textsize=formatting.get('field_text_size') if formatting != None else None,
+            field_label='Model Of New Appliance',
+            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+            mandatory=True,
+            field_multiline=True,
+            field_maxlines=3,
+            )
+    
+    location_new_appliance = create_Textfield(
+            columns_to_occupy=1,
+            field_textsize=formatting.get('field_text_size') if formatting != None else None,
+            field_label='New Appliance Location',
+            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+            mandatory=True,
+            field_multiline=True,
+            field_maxlines=3,
+            )
+
+    time_to_complete = create_Textfield(
+            columns_to_occupy=3,
+            field_textsize=formatting.get('field_text_size') if formatting != None else None,
+            field_label='Estimated Time To Complete Works',
+            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+            mandatory=True,
+            )
+
+    date_to_complete = create_Date(
+        page=page,
+        columns_to_occupy=3,
+        field_textsize=formatting.get('field_text_size') if formatting != None else None,
+        field_label='Date of works scheduled to be carried out',
+        field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+        field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+        mandatory=True
+    )
+
+    email = create_Textfield(
+            columns_to_occupy=3,
+            field_textsize=formatting.get('field_text_size') if formatting != None else None,
+            field_label='Email Address to Communicate With',
+            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+            mandatory=True,
+            ) 
+
+    all_prices_breakdown = ft.ResponsiveRow(
+        col=3,
+        columns=3,
+        controls=[
+            create_PriceBreakdownGroup(
+                page=page,
+                position=0,
+                field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                field_option_source=sor_code_list_price,
+                field_column_price='SOR Cost (BSW)',
+                delete=delete_breakdown_price,
+                overal_total=overal_total
+            ),
+            ft.Row(
+                alignment=ft.MainAxisAlignment.END, 
+                col=3, 
+                controls=[
+                    ft.FloatingActionButton(
+                        tooltip='New SOR Code', 
+                        col=0.3, 
+                        icon=ft.icons.ADD, 
+                        mini=True, 
+                        shape=ft.CircleBorder('circle'), 
+                        bgcolor=getattr(ft.colors, general_formatting.get('field_bgcolor')),
+                        on_click=add_group,
+                        data='Price Breakdown'
+                    )
+                ]
+            ),
+        ]
+    )
+
+    all_uplifts_miscellaneous = ft.ResponsiveRow(
+        col=3,
+        columns=3,
+        controls=[
+            create_UpliftGroup(
+                page=page,
+                position=0,
+                field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                field_option_source=sor_code_list_uplift,
+                field_column_uplift='Uplift BSW',
+                delete=delete_uplift,
+                overal_total=overal_total
+            ),
+            ft.Row(
+                alignment=ft.MainAxisAlignment.END, 
+                col=3, 
+                controls=[
+                    ft.FloatingActionButton(
+                        tooltip='New Uplift', 
+                        col=0.3, 
+                        icon=ft.icons.ADD, 
+                        mini=True, 
+                        shape=ft.CircleBorder('circle'), 
+                        bgcolor=getattr(ft.colors, general_formatting.get('field_bgcolor')),
+                        on_click=add_group,
+                        data='Uplift'
+                    )
+                ]
+            ),
+        ]
+    )
+    
+    gran_total = ft.ResponsiveRow(
+        col=3,
+        columns=3,
+        alignment=ft.MainAxisAlignment.END,
+        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        controls=[
+            ft.Text(
+                value='Total Cost (excl. VAT): ',
+                size=formatting.get('subtitle') if formatting != None else None,
+                color=ft.colors.GREY_300,
+                col=2,
+                text_align=ft.TextAlign.END
+            ),
+            _gran_total_value := create_Textfield(
+                columns_to_occupy=1,
+                field_value='£0.00',
+                field_textsize=formatting.get('field_text_size') if formatting != None else None,
+                field_label='Overal Total',
+                field_labelsize=formatting.get('field_label_size') if formatting != None else None,
+                field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
+                field_disable=True,
+            ),
+        ], 
+    )
+
+
+
+    # BODY OF THE FORM WITH ALL FIELDS
     form=ft.Column(
         scroll=ft.ScrollMode.ALWAYS,
         expand=True,
@@ -640,187 +1168,99 @@ def main(page: ft.Page):
                     controls=[
                         ft.Text(value='*Mandatory fields', color=ft.colors.WHITE, size=10, col=3),
                         
-                        address := create_Textfield(
-                            columns_to_occupy=3, 
-                            field_textsize=formatting.get('field_text_size') if formatting != None else None,
-                            field_label='Address',
-                            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
-                            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
-                            mandatory=True
-                        ),
-
-                        uprn := create_Textfield(
-                            columns_to_occupy=1, 
-                            field_textsize=formatting.get('field_text_size') if formatting != None else None,
-                            field_label='UPRN',
-                            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
-                            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
-                            mandatory=True
-                        ),
-
-                        postcode := create_Textfield(
-                            columns_to_occupy=1,
-                            field_textsize=formatting.get('field_text_size') if formatting != None else None,
-                            field_label='Postcode',
-                            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
-                            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
-                            mandatory=True
-                        ),
+                        contractor_name, gas_elec_etc, date_reported,
                         
-                        tenure := create_Dropdown(
-                            columns_to_occupy=1,
-                            field_label='Tenure', 
-                            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
-                            field_textsize=formatting.get('field_text_size') if formatting != None else None,
-                            field_option_source=field_Options.get_options('Tenure'),
-                            field_option_text='Tenure',
-                            field_option_tooltip='Tenure',
-                            mandatory=True,
-                        ),
-
-                        work_description := create_Textfield(
-                            columns_to_occupy=3, 
-                            field_textsize=formatting.get('field_text_size') if formatting != None else None,
-                            field_label='Description of Work', 
-                            field_labelsize=formatting.get('field_label_size') if formatting != None else None,
-                            field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
-                            field_multiline=True, 
-                            field_maxlines=5,
-                            mandatory=True,
-                        ),
+                        request_type, request_category,
                         
+                        planned_list,
+                        
+                        address,
+
+                        uprn, postcode, tenure,
+
+                        property_type, property_level,
+
+                        private_landlord, void_property, service_level,
+                        
+                        functioning_heating,
+                        
+                        functioning_hot_water,
+                        
+                        temporary_heating,
+                        
+                        meter_location, appliance_type,
+                        
+                        appliance_make, appliance_model,
+                        
+                        condensing_noncondensing,
+                        
+                        serial_number, gc_number, age_appliance,
+
+                        reason_no_serial_number,
+                        
+                        reason_no_gc_number,
+
+                        appliance_failures,
+                        
+                        engineers_comments,
+                        
+                        fault_history,
+
+                        current_location, number_radiators, water_flow_rate,
+
+                        types_of_control,
+
+                        # Upload files
                         ft.Divider(color="#2A685A"),
-                        
                         ft.Text(
-                            value='Price Breakdown',
+                            value='Pre-works Evidence (Inc Photos) *',
                             size=formatting.get('title') if formatting != None else None,
                             color=ft.colors.GREY_300
                         ),
-                        all_prices_breakdown := ft.ResponsiveRow(
-                            col=3,
-                            columns=3,
-                            controls=[
-                                create_PriceBreakdownGroup(
-                                    page=page,
-                                    position=0,
-                                    field_textsize=formatting.get('field_text_size') if formatting != None else None,
-                                    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
-                                    field_option_source=sor_code_list_price,
-                                    field_column_price='SOR Cost (BSW)',
-                                    delete=delete_breakdown_price,
-                                    overal_total=overal_total
-                                ),
-                                ft.Row(
-                                    alignment=ft.MainAxisAlignment.END, 
-                                    col=3, 
-                                    controls=[
-                                        ft.FloatingActionButton(
-                                            tooltip='New SOR Code', 
-                                            col=0.3, 
-                                            icon=ft.icons.ADD, 
-                                            mini=True, 
-                                            shape=ft.CircleBorder('circle'), 
-                                            bgcolor=getattr(ft.colors, general_formatting.get('field_bgcolor')),
-                                            on_click=add_group,
-                                            data='Price Breakdown'
-                                        )
-                                    ]
-                                ),
-                            ]
+                        evidences,
+
+                        ft.Divider(color="#2A685A"),
+
+                        reason_no_evidence,
+                        
+                        work_description,
+
+                        additional_flueing,
+
+                        update_gas_supply,
+
+                        update_condese,
+
+                        make_new_appliance, model_new_appliance, location_new_appliance,
+
+                        ft.Divider(color="#2A685A"),
+                        
+                        ft.Text(
+                            value='Work Quotation Cost Breakdown With SOR Codes',
+                            size=formatting.get('title') if formatting != None else None,
+                            color=ft.colors.GREY_300
                         ),
+                        all_prices_breakdown,
                         
                         ft.Text(
                             value='Uplift - Miscellaneous',
                             size=formatting.get('title') if formatting != None else None,
                             color=ft.colors.GREY_300
                         ),
-                        all_uplifts_miscellaneous := ft.ResponsiveRow(
-                            col=3,
-                            columns=3,
-                            controls=[
-                                create_UpliftGroup(
-                                    page=page,
-                                    position=0,
-                                    field_textsize=formatting.get('field_text_size') if formatting != None else None,
-                                    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
-                                    field_option_source=sor_code_list_uplift,
-                                    field_column_uplift='Uplift BSW',
-                                    delete=delete_uplift,
-                                    overal_total=overal_total
-                                ),
-                                ft.Row(
-                                    alignment=ft.MainAxisAlignment.END, 
-                                    col=3, 
-                                    controls=[
-                                        ft.FloatingActionButton(
-                                            tooltip='New Uplift', 
-                                            col=0.3, 
-                                            icon=ft.icons.ADD, 
-                                            mini=True, 
-                                            shape=ft.CircleBorder('circle'), 
-                                            bgcolor=getattr(ft.colors, general_formatting.get('field_bgcolor')),
-                                            on_click=add_group,
-                                            data='Uplift'
-                                        )
-                                    ]
-                                ),
-                            ]
-                        ),
-                                                
-                        gran_total := ft.ResponsiveRow(
-                            col=3,
-                            columns=3,
-                            alignment=ft.MainAxisAlignment.END,
-                            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                            controls=[
-                                ft.Text(
-                                    value='Overal Total: ',
-                                    size=formatting.get('subtitle') if formatting != None else None,
-                                    color=ft.colors.GREY_300,
-                                    col=2,
-                                    text_align=ft.TextAlign.END
-                                ),
-                                _gran_total_value := create_Textfield(
-                                    columns_to_occupy=1,
-                                    field_value='£0.00',
-                                    field_textsize=formatting.get('field_text_size') if formatting != None else None,
-                                    field_label='Overal Total',
-                                    field_labelsize=formatting.get('field_label_size') if formatting != None else None,
-                                    field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
-                                    field_disable=True,
-                                ),
-                            ], 
-                        ),
+                        all_uplifts_miscellaneous,
+                        
+                        ft.Divider(color="#2A685A"),                   
+                        
+                        gran_total,
+                        
+                        time_to_complete,
+                        
+                        date_to_complete,
+                        
+                        email,
 
-                        ft.Text(
-                            value='Evidences, including photos', 
-                            size=formatting.get('title') if formatting != None else None,
-                            color=ft.colors.GREY_300
-                        ),
-                        ft.ElevatedButton(
-                            col=1,
-                            text="Upload Files",
-                            on_click=lambda _: file_picker.pick_files(dialog_title='Clear Safety - Select Evidences', allow_multiple=True),
-                            height=50,
-                            style=ft.ButtonStyle(
-                                color=ft.colors.BLACK, 
-                                bgcolor=getattr(ft.colors, general_formatting.get('field_bgcolor')) if formatting != None else None,
-                                elevation=10, 
-                                overlay_color=ft.colors.TEAL_ACCENT_700
-                            ),
-                        ),
-                        
-                        card_list_files := ft.Card(
-                            col=2,
-                            color=getattr(ft.colors, general_formatting.get('card_bgcolor')) if general_formatting != None else None,
-                            elevation=10,
-                            content=ft.Column(
-                                spacing=0,
-                                height=120,
-                                scroll=ft.ScrollMode.ALWAYS,
-                            ),
-                        ),
-                        
+
+                        ft.Divider(color="#2A685A"),
                         ft.Row(
                             alignment=ft.MainAxisAlignment.END,
                             controls=[
@@ -847,7 +1287,7 @@ def main(page: ft.Page):
 
     
     
-    page.add(header, form, file_picker)
+    page.add(header, form)
 
 
 ft.app(target=main, assets_dir='assets', upload_dir='assets/uploads', view=ft.AppView.WEB_BROWSER)

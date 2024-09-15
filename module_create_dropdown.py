@@ -12,8 +12,9 @@ def create_Dropdown(
         field_option_text: str=None,
         field_option_tooltip: str=None,
         dropdown_onchange: any=None,
+        condition: dict=None,
+        field_visible: bool=True,
         mandatory: bool=False,
-        condition: dict=None
     ):
     '''
     Parameter
@@ -21,12 +22,13 @@ def create_Dropdown(
         - field_textsize: int=None - Number of the size of the text of the selected option,
         - field_label: str=None - Text to be displayd inside the field, if no option selected, or as field title, if option selected,
         - field_labelsize: int=None - Number of the size of the label,
-        - field_option_source: dict=None - Dictionary from which the options will be taken,
+        - field_option_source: dict=None - Dictionary from which the options will be taken. It comes from the Method 'get_options' of the Class 'Field_Options',
         - field_option_text: str=None - Column name in the 'field_option_source' with the option name,
         - field_option_tooltip: str=None - Column name in the 'field_option_source' with the tooltip to be display in each option,
         - dropdown_onchange: any=None - Function to be triggered when the Dropdown value is changed, as result of option selection
-        - condition: dict=None - If the condition is satisfied, another field will be displayed. Template {'equal_to': 'option', 'afected_field': 'variable_for_the_field'}
-    
+        - condition: dict=None - If the condition is satisfied, another field will be displayed. Template {'equal_to': 'option', 'afected_field': ['variable_for_the_field']}
+        - field_visible: bool=True - if False, the field is not displayed,
+        - mandatory: bool=False - if True, an * will be added in the end of the label,
     '''
     
 
@@ -79,12 +81,14 @@ def create_Dropdown(
 
         if condition != None:
             if e.control.value==condition.get('equal_to'):
-                condition.get('afected_field').visible=True
-                condition.get('afected_field').update()
+                for item in condition.get('afected_field'):
+                    item.visible=True
+                    item.update()
             
             elif e.control.value!=condition.get('equal_to'):
-                condition.get('afected_field').visible=False
-                condition.get('afected_field').update()
+                for item in condition.get('afected_field'):
+                    item.visible=False
+                    item.update()
 
     
     
@@ -128,7 +132,8 @@ def create_Dropdown(
             ) for index, option in enumerate(field_option_source)
         ] if field_option_source != None else None,
         # error_text='Mandatory field',
-        error_style=ft.TextStyle(bgcolor=ft.colors.TEAL_400)
+        error_style=ft.TextStyle(bgcolor=ft.colors.TEAL_400),
+        visible=field_visible,
 
     )
 
@@ -140,74 +145,24 @@ def create_Dropdown(
 
 if __name__ == '__main__':
     
-    import json
-    with open('formatting.json', 'r') as file:
-        formatting = json.load(file)
-    
-
-
-    lista = [
-        {'SOR': 1, 'Description': '3 star PPM with all IOT  SASS fee and equipment charge included (vericon BCM x1 Micro dot autofill 2 switch live from controls  to be wired into BSM ) (order A)'},
-        {'SOR': 2, 'Description': '3 star PPM with all IOT  SASS fee and equipment charge included (vericon BCM x1 Micro dot autofill 2 switch live from controls  to be wired into BSM ) (order B)'},
-        {'SOR': 3, 'Description': '3 star PPM with all IOT  SASS fee and equipment charge included (vericon BCM x1 Micro dot autofill 2 switch live from controls  to be wired into BSM ) (order C)'},
-        {'SOR': 4, 'Description': '3 star PPM with all IOT  SASS fee and equipment charge included (vericon BCM x1 Micro dot autofill 2 switch live from controls  to be wired into BSM ) (order D)'},
-        {'SOR': 5, 'Description': 'D'},
-        {'SOR': 6, 'Description': 'E'},
-        {'SOR': 7, 'Description': 'F'},
-        {'SOR': 8, 'Description': 'G'},
-        {'SOR': 9, 'Description': 'H'},
-        {'SOR': 10, 'Description': 'I'}
-    ]
-    
     def main(page: ft.Page):
         
-        #####################################################################################################
-        # ACCESS FORMATTING
-        #####################################################################################################
-        with open('formatting.json', 'r') as file:
-            formatting = json.load(file)
+        def imprimir(e):
+            x.value=''
+            x.update()
         
-        general_formatting = formatting.get('general')
-        
-        if 'mobile' in page.client_user_agent.lower() or 'table' in page.client_user_agent.lower():
-            formatting = formatting.get('mobile')
-        else:
-            formatting = formatting.get('computer')
-        ######################################################################################################
-        
-        
-        page.bgcolor=getattr(ft.colors, general_formatting.get('page_bgcolor'))
-
-
-        def dropdown_onclick(e):
-            for item in e.control.options:
-                item.content.italic=True
-            e.control.update()
-        
-        def option_onclick(e):
-            e.control.content.italic=False
-            e.control.update()
-        
-
-        page.add(
-            
-            ft.ResponsiveRow(
-                columns=3,
-                width=600,
-                controls=[
-                    create_Dropdown(
-                        field_label='SOR Code',
-                        field_labelsize=formatting.get('field_label_size'),
-                        field_textsize=formatting.get('field_text_size'),
-                        columns_to_occupy=1,
-                        field_option_source=lista,
-                        field_option_text='SOR',
-                        field_option_tooltip='Description',
-                        
-                    ),
-                    
-                ]
-            )
+        x = ft.Dropdown(
+            value=None,
+            label='xxx',
+            options=[
+                ft.dropdown.Option(text='Op 1'),
+                ft.dropdown.Option(text='Op 2')
+            ],
+            #on_change=imprimir
         )
+
+        btn = ft.ElevatedButton(on_click=imprimir)
+
+        page.add(x, btn)
     
     ft.app(target=main, view=ft.AppView.WEB_BROWSER)

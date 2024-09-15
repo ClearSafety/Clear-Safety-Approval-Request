@@ -17,8 +17,9 @@ def create_Textfield(
         field_disable: bool=False,
         field_filter: str=None,
         textfield_onchange: any=None,
+        condition: dict=None,
+        field_visible: bool=True,
         mandatory: bool=False,
-        field_visible: bool=True
     ):
     '''
     Parameter
@@ -35,6 +36,9 @@ def create_Textfield(
         - field_maxlines: int=None - it deliminates the maximun of lines that the field may increase
         - field_disable: bool=False - if True, nothing can be typed,
         - field_filter: str=None - used to deliminate the value that can be entered. It might be INTEGER OR FLOAT,
+        - condition: dict=None - If the condition is satisfied, another field will be displayed. Template {'equal_to': 'option', 'afected_field': ['variable_for_the_field']}
+        - field_visible: bool=True - if False, the field is not displayed,
+        - mandatory: bool=False - if True, an * will be added in the end of the label,
     '''
     
 
@@ -66,6 +70,19 @@ def create_Textfield(
 
     def error_text_delete(e):
         e.control.error_text=None
+        
+        if condition != None:
+            if e.control.value!=condition.get('equal_to'):
+                for item in condition.get('afected_field'):
+                    item.visible=False
+                    item.update()
+            
+            elif e.control.value==condition.get('equal_to'):
+                for item in condition.get('afected_field'):
+                    item.visible=True
+                    item.update()
+        
+        
         e.control.update()
     ##############################################################################################
     

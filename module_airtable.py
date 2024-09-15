@@ -146,8 +146,6 @@ def update_Record(baseID: str, tableID: str, recordID: str, content: dict):
         return "Error"
 
 
-
-
 def delete_Record(recordID):
     base = "appMcOq1kncqafleI"
     table = "tbloLozTMGyG4s2wp"
@@ -163,8 +161,6 @@ def delete_Record(recordID):
         return "Successful"
     else:
         return "Error"
-
-
 
 
 def table_fields(baseID: str, tabaseID: str):
@@ -186,22 +182,11 @@ def table_fields(baseID: str, tabaseID: str):
 
 
 if __name__ == '__main__':
-    #print(len(list(filter(lambda item: item.get('Uplift')=='No', get_Records(baseID='appB0phO3KnX4WexS', tableID='tblFUxOPoerfAg9vN')))))
+    
 
-    baseid = 'appB0phO3KnX4WexS'
-    tableid = 'tblycaJHzyRku5gYp'
-    # print(create_Record(baseID=baseid, tableID=tableid, content={'Price breakdown': '50'}))
-    records = get_Records(
-        baseID=baseid,
-        tableID=tableid,
-        fields=[
-            'Tenure',
-            'Gas/Electrical ETC'
-        ]
-    )
-
-    print(records)
-    # print('x'*50)
-    # print(list(filter(lambda filt: filt != None, list(map(lambda item: item.get('Tenure Types'), records)))))
-    # print([item.get('Tenure Types') for item in records if item.get('Tenure Types') is not None])
+    baseid = 'appkaWXXjd1UyTbUk'
+    tableid = 'tblqO3PiLIuy6yRwZ'
+    
+    new = create_Record(baseID=baseid, tableID=tableid, content={'Tenure': ''})
+    print(new)
     
