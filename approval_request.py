@@ -1050,7 +1050,7 @@ def main(page: ft.Page):
         field_label='Date of works scheduled to be carried out',
         field_labelsize=formatting.get('field_label_size') if formatting != None else None,
         field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
-        mandatory=True
+        mandatory=False
     )
 
     email = create_Textfield(
@@ -1289,8 +1289,8 @@ def main(page: ft.Page):
     
     page.add(header, form)
 
-
-ft.app(target=main, assets_dir='assets', upload_dir='assets/uploads', view=ft.AppView.WEB_BROWSER)
+if __name__=='__main__':
+    ft.app(target=main, assets_dir='assets', upload_dir='assets/uploads', view=ft.AppView.WEB_BROWSER)
 
 
 #SEARCH BAR https://www.youtube.com/watch?v=S0DfmuCHYGY
