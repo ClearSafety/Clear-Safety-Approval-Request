@@ -453,7 +453,7 @@ def main(page: ft.Page):
                                 alignment=ft.MainAxisAlignment.END, 
                                 col=3, 
                                 controls=[
-                                    ft.Text(col=1, value='New SOR Code', color='WHITE'),
+                                    ft.Text(col=1, value='Additional SOR Code', color='WHITE'),
                                     ft.FloatingActionButton(
                                         tooltip='New SOR Code', 
                                         col=0.3, 
@@ -482,7 +482,7 @@ def main(page: ft.Page):
                                 alignment=ft.MainAxisAlignment.END, 
                                 col=3, 
                                 controls=[
-                                    ft.Text(col=1, value='New Uplift', color='WHITE'),
+                                    ft.Text(col=1, value='Additional Uplift', color='WHITE'),
                                     ft.FloatingActionButton(
                                         tooltip='New Uplift', 
                                         col=0.3, 
@@ -1084,7 +1084,7 @@ def main(page: ft.Page):
                 alignment=ft.MainAxisAlignment.END, 
                 col=3, 
                 controls=[
-                    ft.Text(col=1, value='New SOR Code', color='WHITE'),
+                    ft.Text(col=1, value='Additional SOR Code', color='WHITE'),
                     ft.FloatingActionButton(
                         tooltip='New SOR Code', 
                         col=0.3, 
@@ -1118,7 +1118,7 @@ def main(page: ft.Page):
                 alignment=ft.MainAxisAlignment.END, 
                 col=3, 
                 controls=[
-                    ft.Text(col=1, value='New Uplift', color='WHITE'),
+                    ft.Text(col=1, value='Additional Uplift', color='WHITE'),
                     ft.FloatingActionButton(
                         tooltip='New Uplift', 
                         col=0.3, 
