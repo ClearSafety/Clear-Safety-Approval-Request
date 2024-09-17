@@ -159,6 +159,7 @@ def create_UpliftGroup(
                 field_textsize=field_textsize,
                 field_multiline=True,
                 field_maxlines=5,
+                field_minlines=2,
                 mandatory=False,
             ),
 

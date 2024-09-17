@@ -453,6 +453,7 @@ def main(page: ft.Page):
                                 alignment=ft.MainAxisAlignment.END, 
                                 col=3, 
                                 controls=[
+                                    ft.Text(col=1, value='New SOR Code', color='WHITE'),
                                     ft.FloatingActionButton(
                                         tooltip='New SOR Code', 
                                         col=0.3, 
@@ -481,6 +482,7 @@ def main(page: ft.Page):
                                 alignment=ft.MainAxisAlignment.END, 
                                 col=3, 
                                 controls=[
+                                    ft.Text(col=1, value='New Uplift', color='WHITE'),
                                     ft.FloatingActionButton(
                                         tooltip='New Uplift', 
                                         col=0.3, 
@@ -695,6 +697,7 @@ def main(page: ft.Page):
         field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
         field_multiline=True, 
         field_maxlines=5,
+        field_minlines=2,
         mandatory=True,
     )
     
@@ -728,19 +731,19 @@ def main(page: ft.Page):
     )
 
     private_landlord = create_Checkbox(
-        columns_to_occupy=1,
+        columns_to_occupy=1.5,
         field_label='Private Landlord?',
         mandatory=False,
     )
 
     void_property = create_Checkbox(
-        columns_to_occupy=1,
+        columns_to_occupy=1.5,
         field_label='Void Property?',
         mandatory=False,
     )
 
     service_level = create_Dropdown(
-        columns_to_occupy=1,
+        columns_to_occupy=3,
         field_label='Service Level', 
         field_labelsize=formatting.get('field_label_size') if formatting != None else None,
         field_textsize=formatting.get('field_text_size') if formatting != None else None,
@@ -784,7 +787,7 @@ def main(page: ft.Page):
     ) 
 
     meter_location = create_Textfield(
-        columns_to_occupy=1.5,
+        columns_to_occupy=3,
         field_textsize=formatting.get('field_text_size') if formatting != None else None,
         field_label='Meter Location',
         field_labelsize=formatting.get('field_label_size') if formatting != None else None,
@@ -793,7 +796,7 @@ def main(page: ft.Page):
     )
 
     appliance_type = create_Textfield(
-    columns_to_occupy=1.5,
+    columns_to_occupy=3,
     field_textsize=formatting.get('field_text_size') if formatting != None else None,
     field_label='Type of Appliance',
     field_labelsize=formatting.get('field_label_size') if formatting != None else None,
@@ -838,7 +841,8 @@ def main(page: ft.Page):
     field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
     mandatory=True,
     field_multiline=True,
-    field_maxlines=3,
+    field_maxlines=5,
+    field_minlines=2,
     )
 
     reason_no_gc_number = create_Textfield(
@@ -849,11 +853,12 @@ def main(page: ft.Page):
     field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
     mandatory=True,
     field_multiline=True,
-    field_maxlines=3,
+    field_maxlines=5,
+    field_minlines=2,
     )
     
     serial_number = create_Textfield(
-    columns_to_occupy=1,
+    columns_to_occupy=1.5,
     field_textsize=formatting.get('field_text_size') if formatting != None else None,
     field_label='Serial Number',
     field_labelsize=formatting.get('field_label_size') if formatting != None else None,
@@ -863,7 +868,7 @@ def main(page: ft.Page):
     )
 
     gc_number = create_Textfield(
-    columns_to_occupy=1,
+    columns_to_occupy=1.5,
     field_textsize=formatting.get('field_text_size') if formatting != None else None,
     field_label='GC Number',
     field_labelsize=formatting.get('field_label_size') if formatting != None else None,
@@ -873,7 +878,7 @@ def main(page: ft.Page):
     )
 
     age_appliance = create_Textfield(
-    columns_to_occupy=1,
+    columns_to_occupy=3,
     field_textsize=formatting.get('field_text_size') if formatting != None else None,
     field_label='Estimated Age of Appliance',
     field_labelsize=formatting.get('field_label_size') if formatting != None else None,
@@ -889,7 +894,8 @@ def main(page: ft.Page):
     field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
     mandatory=True,
     field_multiline=True,
-    field_maxlines=3,
+    field_maxlines=5,
+    field_minlines=2,
     )
 
     engineers_comments = create_Textfield(
@@ -900,7 +906,8 @@ def main(page: ft.Page):
     field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
     mandatory=True,
     field_multiline=True,
-    field_maxlines=3,
+    field_maxlines=5,
+    field_minlines=2,
     )
 
     fault_history = create_Textfield(
@@ -911,7 +918,8 @@ def main(page: ft.Page):
     field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
     mandatory=True,
     field_multiline=True,
-    field_maxlines=3,
+    field_maxlines=5,
+    field_minlines=2,
     )
 
     current_location = create_Textfield(
@@ -958,7 +966,8 @@ def main(page: ft.Page):
         field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
         mandatory=True,
         field_multiline=True,
-        field_maxlines=3,
+        field_maxlines=5,
+        field_minlines=2,
         )
     
     evidences = create_Filepicker(
@@ -1008,8 +1017,6 @@ def main(page: ft.Page):
             field_labelsize=formatting.get('field_label_size') if formatting != None else None,
             field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
             mandatory=True,
-            field_multiline=True,
-            field_maxlines=3,
             )
 
     model_new_appliance = create_Textfield(
@@ -1019,8 +1026,6 @@ def main(page: ft.Page):
             field_labelsize=formatting.get('field_label_size') if formatting != None else None,
             field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
             mandatory=True,
-            field_multiline=True,
-            field_maxlines=3,
             )
     
     location_new_appliance = create_Textfield(
@@ -1031,11 +1036,10 @@ def main(page: ft.Page):
             field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
             mandatory=True,
             field_multiline=True,
-            field_maxlines=3,
             )
 
     time_to_complete = create_Textfield(
-            columns_to_occupy=3,
+            columns_to_occupy=2,
             field_textsize=formatting.get('field_text_size') if formatting != None else None,
             field_label='Estimated Time To Complete Works',
             field_labelsize=formatting.get('field_label_size') if formatting != None else None,
@@ -1045,7 +1049,7 @@ def main(page: ft.Page):
 
     date_to_complete = create_Date(
         page=page,
-        columns_to_occupy=3,
+        columns_to_occupy=1,
         field_textsize=formatting.get('field_text_size') if formatting != None else None,
         field_label='Date of works scheduled to be carried out',
         field_labelsize=formatting.get('field_label_size') if formatting != None else None,
@@ -1080,6 +1084,7 @@ def main(page: ft.Page):
                 alignment=ft.MainAxisAlignment.END, 
                 col=3, 
                 controls=[
+                    ft.Text(col=1, value='New SOR Code', color='WHITE'),
                     ft.FloatingActionButton(
                         tooltip='New SOR Code', 
                         col=0.3, 
@@ -1113,6 +1118,7 @@ def main(page: ft.Page):
                 alignment=ft.MainAxisAlignment.END, 
                 col=3, 
                 controls=[
+                    ft.Text(col=1, value='New Uplift', color='WHITE'),
                     ft.FloatingActionButton(
                         tooltip='New Uplift', 
                         col=0.3, 
@@ -1159,7 +1165,7 @@ def main(page: ft.Page):
     form=ft.Column(
         scroll=ft.ScrollMode.ALWAYS,
         expand=True,
-        width=600,
+        width=1000,
         controls=[
             ft.Container(
                 padding=ft.padding.only(left=20, right=20, bottom=20),
@@ -1180,7 +1186,9 @@ def main(page: ft.Page):
 
                         property_type, property_level,
 
-                        private_landlord, void_property, service_level,
+                        private_landlord, void_property,
+
+                        service_level,
                         
                         functioning_heating,
                         
@@ -1188,13 +1196,17 @@ def main(page: ft.Page):
                         
                         temporary_heating,
                         
-                        meter_location, appliance_type,
+                        meter_location, 
+                        
+                        appliance_type,
                         
                         appliance_make, appliance_model,
                         
                         condensing_noncondensing,
                         
-                        serial_number, gc_number, age_appliance,
+                        serial_number, gc_number, 
+                        
+                        age_appliance,
 
                         reason_no_serial_number,
                         
@@ -1253,9 +1265,9 @@ def main(page: ft.Page):
                         
                         gran_total,
                         
-                        time_to_complete,
+                        ft.Divider(color="#2A685A"),
                         
-                        date_to_complete,
+                        time_to_complete, date_to_complete,
                         
                         email,
 

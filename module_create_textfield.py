@@ -14,6 +14,7 @@ def create_Textfield(
         field_keyboard: str=None,
         field_multiline: bool=False,
         field_maxlines: int=None,
+        field_minlines: int=None,
         field_disable: bool=False,
         field_filter: str=None,
         textfield_onchange: any=None,
@@ -103,7 +104,8 @@ def create_Textfield(
         hint_style=ft.TextStyle(color=ft.colors.GREY_800, italic=True, size=field_hintsize),
         keyboard_type=getattr(ft.KeyboardType, field_keyboard.upper()) if field_keyboard!=None and field_keyboard.upper() in ['TEXT', 'MULTILINE', 'NUMBER', 'PHONE', 'DATETIME', 'EMAIL', 'URL', 'VISIBLE_PASSWORD', 'NAME', 'STREET_ADDRESS', 'NONE'] else None,
         multiline=field_multiline,
-        max_lines=field_maxlines,  
+        min_lines=field_minlines,
+        max_lines=field_maxlines,
         border_width=1,
         border_color=getattr(ft.colors, formatting.get('field_border_color')) if formatting != None else None,
         bgcolor=getattr(ft.colors, formatting.get('field_bgcolor')) if formatting != None else None,
@@ -115,7 +117,8 @@ def create_Textfield(
         on_change=error_text_delete if textfield_onchange==None else textfield_onchange,
         #error_text='Mandatory field',
         error_style=ft.TextStyle(bgcolor=ft.colors.TEAL_400),
-        visible=field_visible
+        visible=field_visible,
+        #height=100
     )
 
     

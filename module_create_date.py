@@ -80,7 +80,7 @@ def create_Date(
             year = int(date[2])
             
             # Check if day, month and year are valid
-            if not ((0 < day <= 31) and (0 < month <= 12) and (year > 1900)):
+            if not ((0 < day <= 31) and (0 < month <= 12) and (3000 > year > 1900)):
                 e.control.value = ''
 
             # Check days versus months
@@ -98,11 +98,18 @@ def create_Date(
         except:
             e.control.value = ''
 
-
+        if e.control.value != '':
+            e.control.data = e.control.value.split('/')[2]+'/'+e.control.value.split('/')[1]+'/'+e.control.value.split('/')[0]
+            
         e.control.update()
     
     def updateData(e):
-        e.data = datetime.strftime(e.value, '%Y/%m/%d')
+        ...
+        # try:
+        #     e.control.data = datetime.strftime(e.control.value, '%Y/%m/%d')
+        # except:
+        #     e.control.data = ''
+        # print(e.control.value)
 
     date_field = ft.TextField(
         col=columns_to_occupy-0.3,
