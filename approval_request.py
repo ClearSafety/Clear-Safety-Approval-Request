@@ -556,7 +556,7 @@ def main(page: ft.Page, contractor: str):
 
     # HEADER
     header=ft.Container(
-        padding=ft.padding.symmetric(vertical=20, horizontal=40),
+        padding=ft.padding.only(bottom=20, left=40, right=40),
         bgcolor=ft.colors.GREY_100,
         content=ft.ResponsiveRow(
                 vertical_alignment=ft.CrossAxisAlignment.CENTER,
