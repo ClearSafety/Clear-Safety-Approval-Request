@@ -102,14 +102,14 @@ def main_cover(page: ft.Page):
         if page.route == "/":
             page.add(header)
             
-        elif page.route == "/ghnctewsb":
-            main(page=page, contractor='BSW')
+        # elif page.route == "/ghnctewsb":
+        #     main(page=page, contractor='BSW')
         
-        elif page.route == "/ghnctetertaw":
-            main(page=page, contractor='Watret')
+        # elif page.route == "/ghnctetertaw":
+        #     main(page=page, contractor='Watret')
         
-        elif page.route == "/ghnctetk":
-            main(page=page, contractor='KT')
+        # elif page.route == "/ghnctetk":
+        #     main(page=page, contractor='KT')
         
         else:
             page.add(header)
