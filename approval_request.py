@@ -1063,7 +1063,7 @@ def main(page: ft.Page, contractor: str):
             field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
             mandatory=True,
             no_capitalization=True,
-            field_keyboard=ft.KeyboardType.EMAIL,
+            field_keyboard='EMAIL',
             ) 
 
     all_prices_breakdown = ft.ResponsiveRow(
