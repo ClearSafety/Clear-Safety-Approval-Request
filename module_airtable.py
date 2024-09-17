@@ -187,6 +187,8 @@ if __name__ == '__main__':
     baseid = 'appkaWXXjd1UyTbUk'
     tableid = 'tblqO3PiLIuy6yRwZ'
     
-    new = create_Record(baseID=baseid, tableID=tableid, content={'Tenure': ''})
-    print(new)
+    contractor = 'K&T'
+    new = get_Records('appB0phO3KnX4WexS', 'tblFUxOPoerfAg9vN', ['SOR Code', 'SOR Description', f'SOR Cost ({contractor})', f'Uplift {contractor}', 'Uplift'])
+    #new = get_Records('appB0phO3KnX4WexS', 'tblFUxOPoerfAg9vN')
+    print(new[0])
     
