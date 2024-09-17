@@ -21,6 +21,7 @@ def create_Textfield(
         condition: dict=None,
         field_visible: bool=True,
         mandatory: bool=False,
+        no_capitalization: bool=False
     ):
     '''
     Parameter
@@ -32,7 +33,7 @@ def create_Textfield(
         - field_prefix: str=None - a character to be displayed in the beginning of the text,
         - field_prefixsize: int=None - Number of the size of the prefix text,
         - field_hintsize: int=None - Number of the size of the text of the hint (a wording displayed if nothing is typed),
-        - field_keyboard: str=None - property of the class ft.Keyboard. 'TEXT' is default. It defines the mobile keyboard. Main Options: TEXT, NUMBER, PHONE. For other options: https://flet.dev/docs/reference/types/keyboardtype/
+        - field_keyboard: str=None - property of the class ft.KeyboardType. 'TEXT' is default. It defines the mobile keyboard. Main Options: TEXT, NUMBER, PHONE. For other options: https://flet.dev/docs/reference/types/keyboardtype/
         - field_multiline: bool=False - if True, it allows more than one line
         - field_maxlines: int=None - it deliminates the maximun of lines that the field may increase
         - field_disable: bool=False - if True, nothing can be typed,
@@ -40,6 +41,7 @@ def create_Textfield(
         - condition: dict=None - If the condition is satisfied, another field will be displayed. Template {'equal_to': 'option', 'afected_field': ['variable_for_the_field']}
         - field_visible: bool=True - if False, the field is not displayed,
         - mandatory: bool=False - if True, an * will be added in the end of the label,
+        - no_capitalization: bool=False - if True, Capitalization is not applied
     '''
     
 
@@ -110,7 +112,7 @@ def create_Textfield(
         border_color=getattr(ft.colors, formatting.get('field_border_color')) if formatting != None else None,
         bgcolor=getattr(ft.colors, formatting.get('field_bgcolor')) if formatting != None else None,
         border_radius=ft.border_radius.all(10),
-        capitalization=ft.TextCapitalization.SENTENCES,
+        capitalization=ft.TextCapitalization.SENTENCES if no_capitalization == False else None,
         cursor_color=getattr(ft.colors, formatting.get('field_cursor_color')) if formatting != None else None,
         disabled=field_disable,
         input_filter=field_filter,

@@ -79,13 +79,12 @@ def main(page: ft.Page, contractor: str):
     )
     #----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    print(contractor)
     # SOR CODE LIST TO BE USED IN PRICEBREAKDOWN AND UPLIFT DROPDOWN FIELD
     try:
         sor_code_list = get_Records('appB0phO3KnX4WexS', 'tblFUxOPoerfAg9vN', ['SOR Code', 'SOR Description', f'SOR Cost ({contractor})', f'Uplift {contractor}', 'Uplift'])
         sor_code_list_price = list(filter(lambda item: item.get('Uplift') == 'No' and item.get(f'SOR Cost ({contractor})') != 0, sor_code_list))
         sor_code_list_uplift = list(filter(lambda item: item.get('Uplift') == 'Yes' and item.get(f'Uplift {contractor}') != 0, sor_code_list))
-        print(sor_code_list)
+        
     except:
         sor_code_list = []
         sor_code_list_price = []
@@ -1063,6 +1062,8 @@ def main(page: ft.Page, contractor: str):
             field_labelsize=formatting.get('field_label_size') if formatting != None else None,
             field_hintsize=formatting.get('field_hint_size') if formatting != None else None,
             mandatory=True,
+            no_capitalization=True,
+            field_keyboard=ft.KeyboardType.EMAIL,
             ) 
 
     all_prices_breakdown = ft.ResponsiveRow(
