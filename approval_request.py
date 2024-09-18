@@ -12,7 +12,8 @@ from module_create_uplift import create_UpliftGroup
 from module_create_date import create_Date
 from module_create_checkbox import create_Checkbox
 from module_create_listcheckbox import create_ListCheckbox
-from module_create_filepicker import create_Filepicker
+#from module_create_filepicker import create_Filepicker
+from module_create_filepicker import Create_Filepicker
 from module_fields_options import *
 
 os.getenv('FLET_SECRET_KEY')
@@ -275,36 +276,36 @@ def main(page: ft.Page, contractor: str):
             breakdownAnduplifts = ''
 
 
-        # CHECK MANDATORY FIELDS
-        # Normal fields
-        if empty_check_mandatory(
-            page=page,
-            fields=[
-                contractor_name,
-                address, uprn, postcode, work_description, property_type, property_level, meter_location, appliance_type, appliance_make, appliance_model, reason_no_serial_number, reason_no_gc_number, serial_number, gc_number, age_appliance, appliance_failures, engineers_comments, fault_history, current_location, number_radiators, water_flow_rate, reason_no_evidence, make_new_appliance, model_new_appliance, location_new_appliance, time_to_complete, email,
-                planned_list, request_type, request_category, gas_elec_etc, tenure, service_level, functioning_heating, functioning_hot_water, temporary_heating, condensing_noncondensing, additional_flueing, update_gas_supply, update_condese,
-                date_reported.controls[0], date_to_complete.controls[0],
-                ]
-            ):
-            return
+        # # CHECK MANDATORY FIELDS
+        # # Normal fields
+        # if empty_check_mandatory(
+        #     page=page,
+        #     fields=[
+        #         contractor_name,
+        #         address, uprn, postcode, work_description, property_type, property_level, meter_location, appliance_type, appliance_make, appliance_model, reason_no_serial_number, reason_no_gc_number, serial_number, gc_number, age_appliance, appliance_failures, engineers_comments, fault_history, current_location, number_radiators, water_flow_rate, reason_no_evidence, make_new_appliance, model_new_appliance, location_new_appliance, time_to_complete, email,
+        #         planned_list, request_type, request_category, gas_elec_etc, tenure, service_level, functioning_heating, functioning_hot_water, temporary_heating, condensing_noncondensing, additional_flueing, update_gas_supply, update_condese,
+        #         date_reported.controls[0], date_to_complete.controls[0],
+        #         ]
+        #     ):
+        #     return
 
-        # ListCheckbox fields
-        if empty_check_mandatory(
-            page=page,
-            listcheckbox=True,
-            fields=[
-                types_of_control
-                ]
-            ):
-            return
+        # # ListCheckbox fields
+        # if empty_check_mandatory(
+        #     page=page,
+        #     listcheckbox=True,
+        #     fields=[
+        #         types_of_control
+        #         ]
+        #     ):
+        #     return
 
-        #Price breakdown
-        if empty_check_mandatory(
-            page=page,
-            all_prices_breakdown=all_prices_breakdown,
-            fields=['SOR Code', 'Description', 'Qty']
-            ):
-            return
+        # #Price breakdown
+        # if empty_check_mandatory(
+        #     page=page,
+        #     all_prices_breakdown=all_prices_breakdown,
+        #     fields=['SOR Code', 'Description', 'Qty']
+        #     ):
+        #     return
 
 
         # Create the record
@@ -434,8 +435,6 @@ def main(page: ft.Page, contractor: str):
                         for item in types_of_control.controls[0].content.controls:
                             item.value=False
                         
-                        
-                        
                         all_prices_breakdown.controls=[
                             create_PriceBreakdownGroup(
                                 page=page,
@@ -465,6 +464,7 @@ def main(page: ft.Page, contractor: str):
                                 ]
                             ),
                         ]
+                        
                         all_uplifts_miscellaneous.controls=[
                             create_UpliftGroup(
                                 page=page,
@@ -496,7 +496,8 @@ def main(page: ft.Page, contractor: str):
                         ]
                         _gran_total_value.value=''
                         
-                        #card_list_files.content.controls.clear()
+                        evidences.controls[1].content.controls.clear()
+                        evidences0.delete()
                         page.update()
 
             dialog_submission_success = ft.AlertDialog(
@@ -968,12 +969,13 @@ def main(page: ft.Page, contractor: str):
         field_minlines=2,
         )
     
-    evidences = create_Filepicker(
+    evidences0 = Create_Filepicker(
         page=page,
         columns_to_occupy=3,
         upload_directory=upload_directory,
         condition={'equal_to': '', 'afected_field': [reason_no_evidence]}
     )
+    evidences = evidences0.files
 
     additional_flueing = create_Dropdown(
         columns_to_occupy=3,
