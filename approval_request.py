@@ -51,7 +51,7 @@ def main(page: ft.Page, contractor: str):
     page.title='Clear Safety: Approval Request'
     page.horizontal_alignment=ft.CrossAxisAlignment.CENTER
     page.vertical_alignment=ft.MainAxisAlignment.START
-    page.padding=ft.padding.all(0)
+    
     
 
     ###############################################################################################################################################################################################
@@ -556,7 +556,8 @@ def main(page: ft.Page, contractor: str):
 
     # HEADER
     header=ft.Container(
-        padding=ft.padding.only(bottom=20, left=40, right=40),
+        padding=ft.padding.only(top=20, bottom=20, left=40, right=40),
+        margin=ft.margin.all(0),
         bgcolor=ft.colors.GREY_100,
         content=ft.ResponsiveRow(
                 vertical_alignment=ft.CrossAxisAlignment.CENTER,
