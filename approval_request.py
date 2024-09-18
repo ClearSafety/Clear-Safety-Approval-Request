@@ -276,36 +276,36 @@ def main(page: ft.Page, contractor: str):
             breakdownAnduplifts = ''
 
 
-        # # CHECK MANDATORY FIELDS
-        # # Normal fields
-        # if empty_check_mandatory(
-        #     page=page,
-        #     fields=[
-        #         contractor_name,
-        #         address, uprn, postcode, work_description, property_type, property_level, meter_location, appliance_type, appliance_make, appliance_model, reason_no_serial_number, reason_no_gc_number, serial_number, gc_number, age_appliance, appliance_failures, engineers_comments, fault_history, current_location, number_radiators, water_flow_rate, reason_no_evidence, make_new_appliance, model_new_appliance, location_new_appliance, time_to_complete, email,
-        #         planned_list, request_type, request_category, gas_elec_etc, tenure, service_level, functioning_heating, functioning_hot_water, temporary_heating, condensing_noncondensing, additional_flueing, update_gas_supply, update_condese,
-        #         date_reported.controls[0], date_to_complete.controls[0],
-        #         ]
-        #     ):
-        #     return
+        # CHECK MANDATORY FIELDS
+        # Normal fields
+        if empty_check_mandatory(
+            page=page,
+            fields=[
+                contractor_name,
+                address, uprn, postcode, work_description, property_type, property_level, meter_location, appliance_type, appliance_make, appliance_model, reason_no_serial_number, reason_no_gc_number, serial_number, gc_number, age_appliance, appliance_failures, engineers_comments, fault_history, current_location, number_radiators, water_flow_rate, reason_no_evidence, make_new_appliance, model_new_appliance, location_new_appliance, time_to_complete, email,
+                planned_list, request_type, request_category, gas_elec_etc, tenure, service_level, functioning_heating, functioning_hot_water, temporary_heating, condensing_noncondensing, additional_flueing, update_gas_supply, update_condese,
+                date_reported.controls[0], date_to_complete.controls[0],
+                ]
+            ):
+            return
 
-        # # ListCheckbox fields
-        # if empty_check_mandatory(
-        #     page=page,
-        #     listcheckbox=True,
-        #     fields=[
-        #         types_of_control
-        #         ]
-        #     ):
-        #     return
+        # ListCheckbox fields
+        if empty_check_mandatory(
+            page=page,
+            listcheckbox=True,
+            fields=[
+                types_of_control
+                ]
+            ):
+            return
 
-        # #Price breakdown
-        # if empty_check_mandatory(
-        #     page=page,
-        #     all_prices_breakdown=all_prices_breakdown,
-        #     fields=['SOR Code', 'Description', 'Qty']
-        #     ):
-        #     return
+        #Price breakdown
+        if empty_check_mandatory(
+            page=page,
+            all_prices_breakdown=all_prices_breakdown,
+            fields=['SOR Code', 'Description', 'Qty']
+            ):
+            return
 
 
         # Create the record
