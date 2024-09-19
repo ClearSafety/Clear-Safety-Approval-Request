@@ -241,6 +241,15 @@ def main(page: ft.Page, contractor: str):
     
     # SUBMIT FORM
     def submit_form(e):
+        dialog_submission_wait = ft.AlertDialog(
+            title=ft.Text(value='Clear Safety - Approval Request'),
+            content=ft.Text('Form submission im progress. Please wait.'),
+        )
+        
+        page.overlay.append(dialog_submission_wait)
+        dialog_submission_wait.open=True
+        page.update()
+
         # Collect all uploaded files and store them into the list 'allevidences'
         allevidences = []
         if len(evidences.data) > 0:
@@ -371,6 +380,8 @@ def main(page: ft.Page, contractor: str):
         )
 
         if new_record == 'Successful':
+            dialog_submission_wait.open=False
+            page.update()
             def close_dialog_submission_success(e):
                     dialog_submission_success.open=False
                     page.update()
