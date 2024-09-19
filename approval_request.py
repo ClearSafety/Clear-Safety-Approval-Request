@@ -376,11 +376,12 @@ def main(page: ft.Page, contractor: str):
                     page.update()
 
                     # Delete all files from Azure Cloud Service
-                    try:
-                        for item in evidences.data:
-                            deletefile_azure(item.get('blob_name'))
-                    except:
-                        ...
+                    # WARNING: if this step runs too soon, Airtable might not be able to handle the download of the files into its Attachment field
+                    # try:
+                    #     for item in evidences.data:
+                    #         deletefile_azure(item.get('blob_name'))
+                    # except:
+                    #     ...
                     
                     if e.control.text=='Close':
                         page.controls.clear()
