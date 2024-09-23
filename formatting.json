@@ -1,9 +1,9 @@
 {
     "general": {
         "page_bgcolor": "TEAL_800",
-        "field_bgcolor": "TEAL_400",
-        "card_bgcolor": "TEAL_300",
-        "field_border_color": "GREY_300",
+        "field_bgcolor": "GREY_300",
+        "card_bgcolor": "GREY_300",
+        "field_border_color": "GREY_500",
         "field_cursor_color": "GREY_300"
     },
     "computer": {

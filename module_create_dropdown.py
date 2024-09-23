@@ -121,7 +121,7 @@ def create_Dropdown(
                 data=index,
                 content=ft.Container(
                     height=45,
-                    width=1000,
+                    #width=1000,
                     alignment=ft.alignment.center_left,
                     tooltip=option.get(field_option_tooltip) if field_option_tooltip != None else None,
                     content=ft.Text(
@@ -134,7 +134,6 @@ def create_Dropdown(
         # error_text='Mandatory field',
         error_style=ft.TextStyle(bgcolor=ft.colors.TEAL_400),
         visible=field_visible,
-
     )
 
     

@@ -1,0 +1,21 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Microsoft Corporation//Outlook 16.0 MIMEDIR//EN
+
+BEGIN:VEVENT
+DTSTAMP:20240921T114939Z
+
+DTSTART:20241214T000000
+DTEND:20241214T050000
+SUMMARY:Christmas Party
+
+X-ALT-DESC;FMTTYPE=text/html:<html xmlns="http://www.w3.org/1999/xhtml"><head><base href="https://clearsafety.sharepoint.com" /></head><body><p style="margin-left:0cm;">More details to follow, but this will be the date of the Christmas party</p></body></html>
+
+
+
+
+
+
+CATEGORIES:Get-together
+END:VEVENT
+END:VCALENDAR
