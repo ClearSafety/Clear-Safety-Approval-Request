@@ -4,7 +4,7 @@
         "field_bgcolor": "GREY_300",
         "card_bgcolor": "GREY_300",
         "field_border_color": "GREY_500",
-        "field_cursor_color": "GREY_300"
+        "field_cursor_color": "TEAL_800"
     },
     "computer": {
         "text_header": 40,
